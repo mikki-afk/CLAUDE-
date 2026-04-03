@@ -763,33 +763,112 @@ function flipCard(el, index) {
 }
 
 function showAdvice() {
+  const q = document.getElementById("questionField").value.trim();
+  const t = currentTopic;
   const revCount = drawnCards.filter(d => d.reversed).length;
   const total = drawnCards.length;
-  let energy;
-  if (revCount === 0) energy = "整体能量积极正向，事情发展顺利";
-  else if (revCount === total) energy = "整体能量提示需要停下来反思和调整方向";
-  else if (revCount > total/2) energy = "逆位偏多，部分方面需要关注和调整";
-  else energy = "正逆位平衡，事情在发展变化中";
 
+  // 1. 能量判断
+  let energy;
+  if (revCount === 0) energy = "所有牌都是正位，整体能量非常积极正向";
+  else if (revCount === total) energy = "全部逆位，牌面强烈提示你需要暂停、反思并调整当前方向";
+  else if (revCount > total/2) energy = "逆位偏多，有些方面需要特别留意和调整";
+  else energy = "正逆位交织，事情正在发展变化中";
+
+  // 2. 元素分析
   const els = {};
   drawnCards.forEach(d => { els[d.card.el] = (els[d.card.el]||0) + 1; });
-  const dominant = Object.keys(els).sort((a,b) => els[b]-els[a])[0];
-  const elMap = {"火":"行动力和热情是关键","水":"情感和直觉很重要","风":"沟通和思考是重点","土":"务实和稳定是基础"};
-  const elHint = elMap[dominant] || "这个问题涉及重要的人生课题";
+  const sorted = Object.keys(els).sort((a,b) => els[b]-els[a]);
+  const dominant = sorted[0];
+  const elDetail = {
+    "火": "火元素主导，说明行动力、热情和勇气是核心——需要大胆去做，而非犹豫观望",
+    "水": "水元素主导，说明情感、直觉和内心感受是关键——倾听内心比理性分析更重要",
+    "风": "风元素主导，说明沟通、思考和信息是重点——理清思路、好好沟通是破局之道",
+    "土": "土元素主导，说明现实条件、物质基础和稳定性是核心——脚踏实地比空想更有用"
+  };
+  const elHint = elDetail[dominant] || "大阿卡纳占主导，这个问题涉及你人生中重要的课题和转折";
 
-  let topicHint;
-  if (currentTopic === "love") topicHint = "感情中记得倾听内心真实的声音";
-  else if (currentTopic === "work") topicHint = "事业上保持清醒的判断和持续的努力";
-  else topicHint = "相信自己的直觉，同时保持理性思考";
+  // 3. 根据牌阵位置做具体解读
+  let storyLines = [];
+  drawnCards.forEach(d => {
+    const c = d.card;
+    const rev = d.reversed;
+    const pos = d.position;
+    let meaning;
+    if (t === "love") meaning = rev ? c.rl : c.ul;
+    else if (t === "work") meaning = rev ? c.rw : c.uw;
+    else meaning = rev ? c.r : c.u;
+    // 取第一句话作为概要
+    const shortMeaning = meaning.split("，")[0];
+    storyLines.push(`「${pos}」位的${c.name.split(" ")[0]}${rev?"(逆位)":""}提示：${shortMeaning}`);
+  });
 
-  document.getElementById("readingAdvice").innerHTML = `
-    <div class="advice-box">
-      <h3 style="color:var(--gold);margin-bottom:10px">✨ 综合建议</h3>
-      <p>${energy}。${elHint}。${topicHint}。</p>
-      <p style="margin-top:12px;font-style:italic;font-size:13px">
-        塔罗从不给标准答案，而是帮你理清思绪，<br>让你在迷茫中找到属于自己的方向。
-      </p>
-    </div>`;
+  // 4. 针对问题的具体建议
+  let questionAdvice = "";
+  if (q) {
+    // 分析问题中的关键词给出针对性建议
+    const qLow = q;
+    // 最后一张牌（结果牌）的关键信息
+    const lastCard = drawnCards[drawnCards.length - 1];
+    const lastRev = lastCard.reversed;
+    const lc = lastCard.card;
+    let lastMeaning;
+    if (t === "love") lastMeaning = lastRev ? lc.rl : lc.ul;
+    else if (t === "work") lastMeaning = lastRev ? lc.rw : lc.uw;
+    else lastMeaning = lastRev ? lc.r : lc.u;
+
+    questionAdvice = `关于「${q}」，最终位置的${lc.name.split(" ")[0]}${lastRev?"(逆位)":"(正位)"}给出的指引是：${lastMeaning}。`;
+
+    // 如果有挑战牌（位置包含"挑战"）
+    const challenge = drawnCards.find(d => d.position.includes("挑战"));
+    if (challenge) {
+      const cc = challenge.card;
+      const cr = challenge.reversed;
+      let cm;
+      if (t === "love") cm = cr ? cc.rl : cc.ul;
+      else if (t === "work") cm = cr ? cc.rw : cc.uw;
+      else cm = cr ? cc.r : cc.u;
+      questionAdvice += `\n需要注意的挑战是：${cm}。`;
+    }
+
+    // 如果有建议牌
+    const suggest = drawnCards.find(d => d.position.includes("建议"));
+    if (suggest) {
+      const sc = suggest.card;
+      const sr = suggest.reversed;
+      let sm;
+      if (t === "love") sm = sr ? sc.rl : sc.ul;
+      else if (t === "work") sm = sr ? sc.rw : sc.uw;
+      else sm = sr ? sc.r : sc.u;
+      questionAdvice += `\n牌面给出的建议方向：${sm}。`;
+    }
+  }
+
+  // 5. 组合输出
+  let html = `<div class="advice-box">
+    <h3 style="color:var(--gold);margin-bottom:14px">✨ 综合解读</h3>`;
+
+  // 问题针对性解读
+  if (questionAdvice) {
+    html += `<p style="text-align:left;margin-bottom:12px">${questionAdvice.replace(/\n/g,"<br>")}</p>
+    <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:12px 0">`;
+  }
+
+  // 牌面故事线
+  html += `<p style="text-align:left;font-size:13px;margin-bottom:12px">`;
+  storyLines.forEach(s => { html += s + "<br>"; });
+  html += `</p>
+    <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:12px 0">`;
+
+  // 能量和元素
+  html += `<p>${energy}。${elHint}。</p>`;
+
+  html += `<p style="margin-top:14px;font-style:italic;font-size:13px;color:var(--text2)">
+      塔罗从不给标准答案，而是帮你理清思绪，<br>让你在迷茫中找到属于自己的方向。
+    </p>
+  </div>`;
+
+  document.getElementById("readingAdvice").innerHTML = html;
 }
 
 // ============ BROWSE ============
