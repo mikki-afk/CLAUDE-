@@ -429,28 +429,50 @@ function showAdvice() {
     if (negative.includes(d.card.n)) negCount++;
   });
 
+  // 检测是否为是/否问题
+  const yesnoWords = ["吗","会不会","能不能","有没有","是不是","知不知","对不对","好不好","行不行","可不可"];
+  const isYesNo = q && yesnoWords.some(w => q.includes(w));
+
   let trend, trendEmoji, trendColor;
-  if (posCount > negCount + 1) { trend = "整体趋势积极，事情在往好的方向发展"; trendEmoji = "🌟"; trendColor = "#50d080"; }
-  else if (negCount > posCount + 1) { trend = "目前有一些阻碍需要面对，注意调整方向"; trendEmoji = "⚠️"; trendColor = "#e0a040"; }
-  else if (posCount === 0 && negCount === 0) { trend = "局势中性平稳，关注牌面组合的细节信息"; trendEmoji = "🌙"; trendColor = "#a0a0c0"; }
-  else { trend = "好坏参半，机遇与挑战并存"; trendEmoji = "🔅"; trendColor = "#e0c040"; }
+  if (isYesNo) {
+    // 是/否问题：直接看正负牌给答案
+    if (posCount > negCount) {
+      trend = `是。${posCount}张积极牌，答案偏向肯定。积极牌代表正面的回答，不要过度解读为"无所谓"`;
+      trendEmoji = "✅"; trendColor = "#50d080";
+    } else if (negCount > posCount) {
+      trend = `目前偏向否。${negCount}张消极牌，但这反映的是当前趋势，不代表永远不会改变`;
+      trendEmoji = "⚠️"; trendColor = "#e0a040";
+    } else {
+      trend = "不确定，需要结合牌面组合进一步分析";
+      trendEmoji = "🌙"; trendColor = "#a0a0c0";
+    }
+  } else {
+    if (posCount > negCount + 1) { trend = "整体趋势积极，事情在往好的方向发展"; trendEmoji = "🌟"; trendColor = "#50d080"; }
+    else if (negCount > posCount + 1) { trend = "目前有一些阻碍需要面对，注意调整方向"; trendEmoji = "⚠️"; trendColor = "#e0a040"; }
+    else if (posCount === 0 && negCount === 0) { trend = "局势中性平稳，关注牌面组合的细节信息"; trendEmoji = "🌙"; trendColor = "#a0a0c0"; }
+    else { trend = "好坏参半，机遇与挑战并存"; trendEmoji = "🔅"; trendColor = "#e0c040"; }
+  }
 
   // 故事线
   let story = "";
-  if (total === 3) {
+  if (total <= 2) {
+    story = drawnCards.map(d => `${d.card.em}${d.card.name}：${t==="love"?d.card.love:t==="work"?d.card.work:d.card.core}`).join("\n\n");
+    if (total === 2) {
+      const [a, b] = drawnCards.map(d => d.card);
+      story += `\n\n组合含义：${a.em}${a.name} + ${b.em}${b.name} = ${a.core} + ${b.core}`;
+    }
+  } else if (total === 3) {
     const [a, b, c] = drawnCards.map(d => d.card);
     const tDetail = t === "love" ? "love" : t === "work" ? "work" : "core";
     story = `${a.em}${a.name}作为核心主题，被${b.em}${b.name}和${c.em}${c.name}修饰。\n\n`;
     story += `组合「${b.em}${b.name} → ${a.em}${a.name}」：过去的影响是${b[tDetail]}，作用于当前的${a[tDetail]}。\n\n`;
     story += `组合「${a.em}${a.name} → ${c.em}${c.name}」：当前状态指向${c[tDetail]}的趋势。`;
-  } else if (total === 5) {
+  } else if (total <= 9) {
     story = drawnCards.map(d => `【${d.position}】${d.card.em}${d.card.name}：${t==="love"?d.card.love:t==="work"?d.card.work:d.card.core}`).join("\n\n");
-    story += `\n\n从过去到结果的发展脉络：${drawnCards.map(d=>d.card.em).join(" → ")}`;
+    story += `\n\n发展脉络：${drawnCards.map(d=>d.card.em).join(" → ")}`;
   } else {
-    // 九宫格：中心是核心，四周是影响
-    const center = drawnCards[4];
-    story = `核心主题：${center.card.em}${center.card.name} — ${t==="love"?center.card.love:t==="work"?center.card.work:center.card.core}\n\n`;
-    story += drawnCards.filter((_,i)=>i!==4).map(d => `【${d.position}】${d.card.em}${d.card.name}：${t==="love"?d.card.love:t==="work"?d.card.work:d.card.core}`).join("\n\n");
+    // 大牌阵
+    story = drawnCards.map(d => `${d.card.em}${d.card.name}`).join(" · ");
   }
 
   // 输出
@@ -462,7 +484,6 @@ function showAdvice() {
 
   html += `<h3 style="color:var(--gold);margin-bottom:8px;font-size:14px">🔗 牌面组合</h3>
     <p style="font-size:13px;color:var(--text2);margin-bottom:12px">${combos.join(" → ")}</p>
-    <p style="font-size:12px;color:var(--text2);margin-bottom:12px">雷诺曼的核心在于牌与牌的组合——单张牌只是词语，组合起来才是完整的句子。</p>
     <hr style="border:none;border-top:1px solid rgba(201,168,76,0.2);margin:12px 0">`;
 
   html += `<h3 style="color:var(--gold);margin-bottom:10px;font-size:14px">📖 组合解读</h3>
@@ -471,7 +492,7 @@ function showAdvice() {
 
   html += `<p style="font-style:italic;font-size:12px;color:var(--text2);line-height:1.8">
     雷诺曼告诉你会发生什么，但选择如何应对仍在你手中。<br>
-    结果通常在3个月内显现。</p></div>`;
+    牌义需结合你的实际情况理解，同一张牌在不同背景下含义不同。</p></div>`;
 
   document.getElementById("readingAdvice").innerHTML = html;
 }
