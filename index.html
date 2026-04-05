@@ -768,29 +768,70 @@ function getCardMeaning(card, reversed, topic) {
   return reversed ? card.r : card.u;
 }
 
-// 计算单张牌的正面/负面分数 (正位正面牌 +2, 正位中性 +1, 逆位 -1~-2)
-function cardScore(card, reversed) {
-  const positive = [0,1,3,4,6,8,10,14,17,19,21]; // 愚人,魔术师,女皇,皇帝,恋人,力量,命运之轮,节制,星星,太阳,世界
-  const negative = [12,13,15,16,18]; // 倒吊人,死神,恶魔,塔,月亮
-  const n = card.n;
-  const suit = card.suit;
+// 检测问题类型
+function detectQuestionType(q) {
+  if (!q) return "general";
+  const loveWords = ["喜欢","爱","心动","在一起","复合","分手","暧昧","对象","恋","感情","他","她","前任","脱单","结婚","表白","追","撩","约会","冷战","吵架","出轨","第三者","备胎","暗恋","单身"];
+  const workWords = ["工作","辞职","跳槽","升职","加薪","面试","offer","创业","项目","老板","同事","事业","转行","裁员","绩效","领导","职场","考试","学业","考研","留学"];
+  const choiceWords = ["该不该","要不要","选","还是","应不应该","值不值得","好不好","合不合适","能不能"];
+  const feelingWords = ["喜欢我","爱我","想我","在意我","心里有我","对我","怎么看我","什么感觉","什么态度","有没有感情"];
+  const futureWords = ["会不会","能不能","有没有","可不可以","还会","将来","未来","以后","结果","前途","前景","机会"];
 
-  let base = 0;
-  if (suit === "大阿卡纳") {
-    if (positive.includes(n)) base = 2;
-    else if (negative.includes(n)) base = -1;
-    else base = 1;
+  if (feelingWords.some(w => q.includes(w))) return "feeling";
+  if (choiceWords.some(w => q.includes(w))) return "choice";
+  if (futureWords.some(w => q.includes(w))) return "future";
+  if (loveWords.some(w => q.includes(w))) return "love";
+  if (workWords.some(w => q.includes(w))) return "work";
+  return "general";
+}
+
+// 根据问题类型+牌面生成针对性趋势解读
+function generateVerdict(qType, cards, topic) {
+  const last = cards[cards.length - 1];
+  const lc = last.card;
+  const lr = last.reversed;
+  const cardName = lc.name.split(" ")[0];
+  const meaning = getCardMeaning(lc, lr, topic);
+  const shortMeaning = meaning.split("；")[0].split("，")[0];
+  const revCount = cards.filter(d => d.reversed).length;
+  const total = cards.length;
+  const positiveRatio = (total - revCount) / total;
+
+  // 元素能量
+  const suitEnergy = {"权杖":"热情与行动","圣杯":"情感与直觉","宝剑":"思考与沟通","星币":"务实与稳定","大阿卡纳":"人生重大课题"};
+  const energy = suitEnergy[lc.suit] || "综合能量";
+
+  let verdict = "", emoji = "", color = "";
+
+  if (qType === "feeling") {
+    // 问对方感觉/喜不喜欢
+    if (lc.suit === "圣杯" && !lr) { verdict = `牌面显示对方内心有情感流动，${cardName}正位代表${shortMeaning}`; emoji = "💗"; color = "#e080a0"; }
+    else if (lc.suit === "圣杯" && lr) { verdict = `对方有过情感波动，但${cardName}逆位提示${shortMeaning}——感情受阻或尚未准备好表达`; emoji = "💭"; color = "#a0a0c0"; }
+    else if (lc.suit === "权杖" && !lr) { verdict = `对方有热情和兴趣，${cardName}正位代表${shortMeaning}——行动上是积极的`; emoji = "🔥"; color = "#e0a040"; }
+    else if (lc.suit === "权杖" && lr) { verdict = `对方可能有过心动但热情在消退，${cardName}逆位提示${shortMeaning}`; emoji = "🌙"; color = "#a0a0c0"; }
+    else if (lc.suit === "宝剑" && !lr) { verdict = `对方更多是理性在思考这段关系，${cardName}正位代表${shortMeaning}——头脑清醒但不一定是情感驱动`; emoji = "🧊"; color = "#90a8d0"; }
+    else if (lc.suit === "宝剑" && lr) { verdict = `对方内心有纠结或回避，${cardName}逆位提示${shortMeaning}——可能还没想清楚`; emoji = "🌫️"; color = "#a0a0c0"; }
+    else if (lc.suit === "星币" && !lr) { verdict = `对方更关注现实层面的考量，${cardName}正位代表${shortMeaning}——务实但不代表没有感情`; emoji = "🌿"; color = "#50b080"; }
+    else if (lc.suit === "星币" && lr) { verdict = `对方在现实层面有顾虑，${cardName}逆位提示${shortMeaning}——可能因为外在条件而犹豫`; emoji = "⚠️"; color = "#e0a040"; }
+    else if (!lr) { verdict = `${cardName}正位揭示：${shortMeaning}——这是一个重要的信号，结合你们的实际互动来理解`; emoji = "✨"; color = "#d4a843"; }
+    else { verdict = `${cardName}逆位提示：${shortMeaning}——对方的态度可能需要时间或契机才能转变`; emoji = "🌙"; color = "#a0a0c0"; }
+  } else if (qType === "choice") {
+    // 问该不该/要不要
+    if (positiveRatio >= 0.7) { verdict = `牌面整体偏向支持行动。${cardName}${lr?"逆位":"正位"}提示：${shortMeaning}——但最终决定权在你自己`; emoji = "🌟"; color = "#50d080"; }
+    else if (positiveRatio >= 0.4) { verdict = `牌面显示这个选择有利有弊，不是简单的该或不该。${cardName}${lr?"逆位":"正位"}提示：${shortMeaning}——建议权衡后再做决定`; emoji = "⚖️"; color = "#e0c040"; }
+    else { verdict = `牌面提示当前时机可能不够成熟。${cardName}${lr?"逆位":"正位"}提示：${shortMeaning}——不代表永远不行，而是现在可能需要调整或等待`; emoji = "⏳"; color = "#e0a040"; }
+  } else if (qType === "future") {
+    // 问会不会/能不能
+    if (positiveRatio >= 0.7) { verdict = `按当前趋势发展，可能性较大。${cardName}${lr?"逆位":"正位"}指向：${shortMeaning}——记住未来不是定论，你的行动会影响结果`; emoji = "🌟"; color = "#50d080"; }
+    else if (positiveRatio >= 0.4) { verdict = `存在可能性，但过程中会有波折。${cardName}${lr?"逆位":"正位"}指向：${shortMeaning}——需要你主动应对中间的挑战`; emoji = "🔅"; color = "#e0c040"; }
+    else { verdict = `按当前趋势，会有阻碍需要面对。${cardName}${lr?"逆位":"正位"}指向：${shortMeaning}——这不是终点，而是提示你需要换个方式`; emoji = "🔄"; color = "#e0a040"; }
   } else {
-    // 小阿卡纳: 1,3,4,6,9,10,13,14偏正面; 5,7,8,9(剑),10(杖)偏负面
-    if ([1,2,3,4,6,14].includes(n)) base = 1.5;
-    else if ([5,7,8,9,10].includes(n)) base = -0.5;
-    else base = 0.5;
-    // 圣杯和星币整体更正面
-    if (suit === "圣杯" || suit === "星币") base += 0.3;
-    // 宝剑整体更尖锐
-    if (suit === "宝剑") base -= 0.3;
+    // 一般问题
+    if (positiveRatio >= 0.7) { verdict = `整体趋势积极。${cardName}${lr?"逆位":"正位"}的核心信息：${shortMeaning}`; emoji = "🌟"; color = "#50d080"; }
+    else if (positiveRatio >= 0.4) { verdict = `趋势中有机遇也有挑战。${cardName}${lr?"逆位":"正位"}提示：${shortMeaning}`; emoji = "🔅"; color = "#e0c040"; }
+    else { verdict = `当前趋势提示需要调整。${cardName}${lr?"逆位":"正位"}提示：${shortMeaning}——这是改变方向的信号`; emoji = "🔄"; color = "#e0a040"; }
   }
-  return reversed ? -base : base;
+  return { verdict, emoji, color };
 }
 
 function showAdvice() {
@@ -798,29 +839,10 @@ function showAdvice() {
   const t = currentTopic;
   const revCount = drawnCards.filter(d => d.reversed).length;
   const total = drawnCards.length;
+  const qType = detectQuestionType(q);
 
-  // === 1. 计算总体得分，判断是/否/不确定 ===
-  let totalScore = 0;
-  drawnCards.forEach(d => { totalScore += cardScore(d.card, d.reversed); });
-  const avgScore = totalScore / total;
-
-  // 结果牌（最后一张）权重更高
-  const lastCard = drawnCards[drawnCards.length - 1];
-  const lastScore = cardScore(lastCard.card, lastCard.reversed);
-  const finalScore = avgScore * 0.6 + (lastScore > 0 ? 1 : lastScore < 0 ? -1 : 0) * 0.4;
-
-  let verdict, verdictEmoji, verdictColor;
-  if (finalScore > 0.5) {
-    verdict = "趋势积极，顺势而为"; verdictEmoji = "🌟"; verdictColor = "#50d080";
-  } else if (finalScore > 0.1) {
-    verdict = "趋势偏积极，但需留意细节"; verdictEmoji = "🔅"; verdictColor = "#e0c040";
-  } else if (finalScore > -0.1) {
-    verdict = "趋势不明朗，建议观望等待"; verdictEmoji = "🌙"; verdictColor = "#a0a0c0";
-  } else if (finalScore > -0.5) {
-    verdict = "趋势有阻碍，需要调整方式"; verdictEmoji = "⚠️"; verdictColor = "#e0a040";
-  } else {
-    verdict = "趋势需反思，换个方向尝试"; verdictEmoji = "🔄"; verdictColor = "#e06060";
-  }
+  // === 1. 生成针对性趋势判断 ===
+  const { verdict, emoji: verdictEmoji, color: verdictColor } = generateVerdict(qType, drawnCards, t);
 
   // === 2. 能量判断 ===
   let energy;
@@ -841,81 +863,71 @@ function showAdvice() {
   };
   const elHint = elDetail[dominant] || "涉及重要的人生课题";
 
-  // === 4. 根据牌阵讲故事 ===
+  // === 4. 根据牌阵+问题讲故事 ===
   let story = "";
+  const qLabel = q ? `关于「${q}」，` : "";
+
   if (total === 1) {
-    // 单牌
     const d = drawnCards[0];
     const m = getCardMeaning(d.card, d.reversed, t);
-    story = `${d.card.em} ${d.card.name.split(" ")[0]}${d.reversed?"(逆位)":"(正位)"}告诉你：${m}`;
+    story = `${qLabel}${d.card.em} ${d.card.name.split(" ")[0]}${d.reversed?"(逆位)":"(正位)"}揭示的核心信息：\n\n${m}\n\n这张牌反映的是当前的能量状态和趋势方向，不是简单的是或否。请结合你的实际处境来理解这张牌想告诉你的。`;
   } else if (total === 3) {
-    // 时间之流: 过去-现在-未来
     const [past, now, future] = drawnCards;
-    const pm = getCardMeaning(past.card, past.reversed, t).split("，")[0];
-    const nm = getCardMeaning(now.card, now.reversed, t).split("，")[0];
+    const pm = getCardMeaning(past.card, past.reversed, t);
+    const nm = getCardMeaning(now.card, now.reversed, t);
     const fm = getCardMeaning(future.card, future.reversed, t);
-    story = `过去，${past.card.name.split(" ")[0]}${past.reversed?"(逆)":""}显示「${pm}」；`
-      + `现在，${now.card.name.split(" ")[0]}${now.reversed?"(逆)":""}的状态是「${nm}」；`
-      + `未来走向，${future.card.name.split(" ")[0]}${future.reversed?"(逆)":""}指引：${fm}`;
+    story = `${qLabel}三张牌串联起一条完整的故事线：\n\n`
+      + `【过去·根源】${past.card.name.split(" ")[0]}${past.reversed?"(逆)":""}：${pm.split("；")[0]}\n\n`
+      + `【现在·核心】${now.card.name.split(" ")[0]}${now.reversed?"(逆)":""}：${nm.split("；")[0]}\n\n`
+      + `【未来·趋势】${future.card.name.split(" ")[0]}${future.reversed?"(逆)":""}：${fm}\n\n`
+      + `过去的影响塑造了现在的状态，而未来牌指出的是按当前趋势的走向——你的行动可以改变它。`;
   } else if (total === 5) {
-    // 关系十字
     const [you, them, challenge, suggest, outcome] = drawnCards;
-    const ym = getCardMeaning(you.card, you.reversed, t).split("，")[0];
-    const tm2 = getCardMeaning(them.card, them.reversed, t).split("，")[0];
-    const cm = getCardMeaning(challenge.card, challenge.reversed, t).split("，")[0];
-    const sm = getCardMeaning(suggest.card, suggest.reversed, t).split("，")[0];
-    const om = getCardMeaning(outcome.card, outcome.reversed, t);
-    story = `你的状态：${ym}。对方的状态：${tm2}。`
-      + `你们之间的挑战是：${cm}。`
-      + `牌面建议你：${sm}。`
-      + `最终走向：${om}`;
+    story = `${qLabel}五张牌从多角度揭示关系全貌：\n\n`
+      + `【你的状态】${you.card.name.split(" ")[0]}${you.reversed?"(逆)":""}：${getCardMeaning(you.card, you.reversed, t).split("；")[0]}\n\n`
+      + `【对方状态】${them.card.name.split(" ")[0]}${them.reversed?"(逆)":""}：${getCardMeaning(them.card, them.reversed, t).split("；")[0]}\n\n`
+      + `【核心挑战】${challenge.card.name.split(" ")[0]}${challenge.reversed?"(逆)":""}：${getCardMeaning(challenge.card, challenge.reversed, t).split("；")[0]}\n\n`
+      + `【行动建议】${suggest.card.name.split(" ")[0]}${suggest.reversed?"(逆)":""}：${getCardMeaning(suggest.card, suggest.reversed, t).split("；")[0]}\n\n`
+      + `【走向趋势】${outcome.card.name.split(" ")[0]}${outcome.reversed?"(逆)":""}：${getCardMeaning(outcome.card, outcome.reversed, t)}\n\n`
+      + `关系中双方的状态决定了挑战的本质，而建议牌指出了破局方向。`;
   } else {
-    // 凯尔特十字或其他
     drawnCards.forEach(d => {
-      const m = getCardMeaning(d.card, d.reversed, t).split("，")[0];
-      story += `「${d.position}」${d.card.name.split(" ")[0]}${d.reversed?"(逆)":""}：${m}。`;
+      const m = getCardMeaning(d.card, d.reversed, t).split("；")[0];
+      story += `【${d.position}】${d.card.name.split(" ")[0]}${d.reversed?"(逆)":""}：${m}\n\n`;
     });
-    // 最终结果单独展开
     const last = drawnCards[drawnCards.length - 1];
     const lastM = getCardMeaning(last.card, last.reversed, t);
-    story += `\n\n最终结果 ${last.card.name.split(" ")[0]} 的完整指引：${lastM}`;
+    story += `最终结果 ${last.card.name.split(" ")[0]} 的完整指引：${lastM}\n\n`;
+    story += `十张牌层层递进，最终结果牌是当前趋势的指引，选择权始终在你手中。`;
   }
 
   // === 5. 组合输出 ===
   let html = `<div class="advice-box">`;
 
-  // 直接结论
-  if (q) {
-    html += `<div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:14px;color:var(--text2);margin-bottom:6px">关于「${q}」</div>
-      <div style="font-size:36px;margin:8px 0">${verdictEmoji}</div>
-      <div style="font-size:22px;font-weight:bold;color:${verdictColor};letter-spacing:2px">${verdict}</div>
-    </div>
-    <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
-  } else {
-    html += `<div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:36px;margin:8px 0">${verdictEmoji}</div>
-      <div style="font-size:20px;font-weight:bold;color:${verdictColor};letter-spacing:2px">${verdict}</div>
-    </div>
-    <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
-  }
+  // 趋势判断
+  html += `<div style="text-align:center;margin-bottom:16px">`;
+  if (q) html += `<div style="font-size:14px;color:var(--text2);margin-bottom:8px">关于「${q}」</div>`;
+  html += `<div style="font-size:36px;margin:8px 0">${verdictEmoji}</div>
+    <div style="font-size:15px;color:${verdictColor};line-height:1.8;padding:0 10px">${verdict}</div>
+  </div>
+  <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
 
   // 牌阵解读指南
   let spreadGuide = "";
   if (total === 1) {
-    spreadGuide = "单牌不是简单的是或否。这张牌揭示的是你当前问题的核心能量与趋势方向——它像一面镜子，照见你内心深处已有的答案。请结合牌义和你的具体处境来理解。";
+    spreadGuide = "单牌揭示的是问题的核心能量与趋势方向。它像一面镜子，照见你内心深处已有的答案。正位不一定代表「是」，逆位不一定代表「否」——要看牌义和你的问题之间的关系。";
   } else if (total === 3) {
-    spreadGuide = "时间之流：三张牌构成一条故事线。过去牌揭示事情的根源和已有的影响；现在牌反映当下的核心状态；未来牌指出按当前趋势可能的走向——未来不是定论，你的行动可以改变它。";
+    spreadGuide = "三张牌构成一条故事线：过去揭示根源，现在反映核心状态，未来指出趋势走向。未来不是定论，你的行动可以改变它。";
   } else if (total === 5) {
-    spreadGuide = "关系十字：五张牌从多角度揭示关系全貌。你的状态和对方状态揭示双方的内心；挑战牌指出关系中最需要面对的问题；建议牌给出行动方向；结果牌是按当前趋势的走向，而非不可改变的命运。";
+    spreadGuide = "五张牌从多角度揭示关系全貌：双方状态揭示内心，挑战牌指出最需面对的问题，建议牌给出行动方向，结果牌是当前趋势而非命运。";
   } else {
-    spreadGuide = "凯尔特十字：十张牌层层递进，全面解析问题。现状与挑战揭示核心矛盾；潜意识和过去揭示深层原因；可能性和近未来指出短期走向；自我态度和外界影响反映内外因素；希望与恐惧揭示你内心真实的渴望；最终结果是当前趋势的指引，选择权始终在你手中。";
+    spreadGuide = "十张牌层层递进：现状与挑战揭示核心矛盾，潜意识和过去揭示深层原因，希望与恐惧揭示内心真实渴望，最终结果是趋势指引。";
   }
   html += `<h3 style="color:var(--gold);margin-bottom:8px;font-size:14px">🧭 牌阵解读原理</h3>
     <p style="text-align:left;line-height:1.8;font-size:13px;color:var(--text2);margin-bottom:12px">${spreadGuide}</p>
     <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
 
-  // 牌阵故事解读
+  // 牌面故事解读
   html += `<h3 style="color:var(--gold);margin-bottom:10px;font-size:15px">📖 牌面解读</h3>
     <p style="text-align:left;line-height:1.9;font-size:14px;margin-bottom:12px">${story.replace(/\n/g,"<br>")}</p>
     <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
