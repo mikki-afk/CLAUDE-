@@ -11,10 +11,6 @@ body {
   background: #0a0a1e;
   color: #e0e0f0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
   position: relative;
 }
 body::before {
@@ -23,101 +19,453 @@ body::before {
   background: url('bg.jpeg') center center / cover no-repeat;
   opacity: 0.15; z-index: -1;
 }
-.home-container { max-width: 600px; width: 100%; padding: 20px; text-align: center; }
-h1 { color: #d4a843; font-size: 32px; letter-spacing: 6px; margin-bottom: 8px; text-shadow: 0 0 20px rgba(212,168,67,0.4); }
-.subtitle { color: #8898b0; font-size: 14px; letter-spacing: 2px; margin-bottom: 40px; }
-.icon { font-size: 80px; margin: 30px 0; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+.container { max-width: 640px; margin: 0 auto; padding: 20px; }
+h1 { color: #d4a843; font-size: 32px; letter-spacing: 6px; text-shadow: 0 0 20px rgba(212,168,67,0.4); }
+h2 { color: #d4a843; font-size: 20px; margin-bottom: 12px; }
+h3 { color: #d4a843; font-size: 16px; }
+.subtitle { color: #8898b0; font-size: 14px; letter-spacing: 2px; }
+.icon { font-size: 80px; margin: 30px 0; animation: fl 3s ease-in-out infinite; }
+@keyframes fl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+button {
+  background: linear-gradient(135deg, rgba(60,40,100,0.9), rgba(30,20,60,0.9));
+  color: #e8cc6e;
+  border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 14px;
+  padding: 16px 24px;
+  font-size: 17px;
+  cursor: pointer;
+  width: 100%;
+  margin: 6px 0;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  -webkit-tap-highlight-color: transparent;
+}
+button:active { transform: scale(0.97); border-color: #d4a843; }
+.btn-back { background: transparent; border: 1px solid #8898b0; color: #8898b0; }
+.screen { display: none; animation: fadeIn 0.4s; }
+.screen.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
 .options { display: flex; flex-direction: column; gap: 14px; }
 .option {
-  display: block; text-decoration: none;
+  display: block; text-decoration: none; color: inherit;
   background: linear-gradient(135deg, rgba(40,30,70,0.8), rgba(20,15,45,0.9));
   border: 1px solid rgba(212,168,67,0.3);
   border-radius: 16px;
   padding: 24px 20px;
   transition: all 0.3s;
-  position: relative; overflow: hidden;
+  text-align: center;
 }
 .option:active { transform: scale(0.98); border-color: #d4a843; box-shadow: 0 0 20px rgba(212,168,67,0.2); }
 .option .title { color: #d4a843; font-size: 20px; font-weight: bold; letter-spacing: 2px; }
 .option .desc { color: #8898b0; font-size: 13px; margin-top: 6px; line-height: 1.6; }
 .option .emoji { font-size: 36px; margin-bottom: 8px; }
 
-.dual-frame {
-  display: none;
-  width: 100vw; height: 100vh;
-  position: fixed; inset: 0; z-index: 100;
-  background: #0a0a1e;
+input[type="text"] {
+  width:100%; padding:14px 16px; border-radius:12px;
+  border:1px solid rgba(42,64,112,0.6); background:rgba(26,42,72,0.8);
+  color:#e0e8f0; font-size:16px; margin:10px 0;
 }
-.dual-frame.active { display: flex; }
-.dual-frame iframe {
-  flex: 1; border: none; height: 100%;
-}
-.dual-frame .divider {
-  width: 2px; background: linear-gradient(to bottom, transparent, #d4a843, transparent);
-}
-.dual-back {
-  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-  z-index: 200; background: rgba(10,10,30,0.9); color: #d4a843;
-  border: 1px solid #d4a843; border-radius: 20px;
-  padding: 8px 20px; font-size: 13px; cursor: pointer;
-  display: none;
-}
-.dual-back.active { display: block; }
+input::placeholder { color:#506080; }
 
-/* Mobile: stack vertically */
-@media (max-width: 768px) {
-  .dual-frame { flex-direction: column; }
-  .dual-frame .divider { width: 100%; height: 2px; }
+/* Dual reading cards */
+.dual-section {
+  background: linear-gradient(145deg, rgba(26,42,72,0.6), rgba(16,25,46,0.8));
+  border: 1px solid rgba(42,64,112,0.6);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 16px 0;
 }
+.dual-section h3 { margin-bottom: 10px; }
+.dual-cards {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 12px 0;
+}
+.d-card {
+  width: 80px; height: 115px; perspective: 800px; cursor: pointer;
+}
+.d-card-inner {
+  width:100%; height:100%; position:relative;
+  transform-style:preserve-3d; transition:transform 0.6s;
+}
+.d-card.flipped .d-card-inner { transform: rotateY(180deg); }
+.d-card.reversed.flipped .d-card-inner { transform: rotateY(180deg) rotate(180deg); }
+.d-card-front, .d-card-back {
+  position:absolute; width:100%; height:100%;
+  backface-visibility:hidden; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.d-card-back {
+  background: url('card-back.jpeg') center/cover no-repeat;
+  border: 2px solid #d4a843;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.d-card-front {
+  background: linear-gradient(170deg, #1e2e50, #142040);
+  border: 2px solid rgba(42,64,112,0.6);
+  transform: rotateY(180deg); padding: 4px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+}
+.d-card.flipped .d-card-front { border-color: #d4a843; box-shadow: 0 0 15px rgba(212,168,67,0.2); }
+.d-card-front .emoji { font-size: 24px; }
+.d-card-front .name { font-size: 9px; color: #d4a843; margin-top: 2px; text-align:center; }
+.d-card-front .orient { font-size: 9px; color: #8898b0; }
+
+.result-item {
+  background: rgba(26,42,72,0.4);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 8px 0;
+  border-left: 3px solid #d4a843;
+}
+.result-item .pos { font-size: 11px; color: #d4a843; letter-spacing: 1px; }
+.result-item .detail { font-size: 13px; line-height: 1.7; margin-top: 4px; color: #c0c8d8; }
+
+.cross-box {
+  background: linear-gradient(135deg, rgba(20,15,40,0.9), rgba(30,25,55,0.9));
+  border: 1px solid #d4a843;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 0 25px rgba(212,168,67,0.1);
+}
+
+.shuffle-overlay { display:none; position:fixed; inset:0; background:rgba(10,10,30,0.95); z-index:100; flex-direction:column; align-items:center; justify-content:center; }
+.shuffle-overlay.active { display:flex; }
+.shuffle-text { color:#d4a843; font-size:22px; margin-top:20px; letter-spacing:4px; }
 </style>
 </head>
 <body>
+<div class="container">
 
-<div class="home-container" id="homeView">
-  <div class="icon">✨</div>
-  <h1>占卜系统</h1>
-  <div class="subtitle">塔罗 · 雷诺曼 · 双系统解读</div>
-
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div style="text-align:center;padding:40px 0 20px">
+    <div class="icon">✨</div>
+    <h1>占卜系统</h1>
+    <div class="subtitle">塔罗 · 雷诺曼 · 双系统解读</div>
+  </div>
   <div class="options">
     <a href="tarot.html" class="option">
       <div class="emoji">🔮</div>
       <div class="title">塔罗占卜</div>
-      <div class="desc">韦特塔罗体系 · 78张牌 · 正逆位解读<br>告诉你「为什么」— 深入内心与灵魂课题</div>
+      <div class="desc">韦特塔罗体系 · 78张牌 · 正逆位解读<br>告诉你「为什么」</div>
     </a>
-
     <a href="lenormand.html" class="option">
       <div class="emoji">🃏</div>
       <div class="title">雷诺曼占卜</div>
-      <div class="desc">36张牌 · 组合解读 · 无正逆位<br>告诉你「会发生什么」— 具体实际的预测</div>
+      <div class="desc">36张牌 · 组合解读 · 无正逆位<br>告诉你「会发生什么」</div>
     </a>
-
-    <a href="#" onclick="openDual();return false" class="option">
+    <a href="#" onclick="showScreen('dual-input');return false" class="option">
       <div class="emoji">⚡</div>
-      <div class="title">双系统并排</div>
-      <div class="desc">同一个问题，塔罗 + 雷诺曼同时解读<br>从「为什么」到「会发生什么」全面分析</div>
+      <div class="title">双系统解读</div>
+      <div class="desc">同一个问题，塔罗+雷诺曼同时解读<br>从「为什么」到「会怎样」全面分析</div>
     </a>
   </div>
 </div>
 
-<div class="dual-frame" id="dualFrame">
-  <iframe src="tarot.html" id="tarotFrame"></iframe>
-  <div class="divider"></div>
-  <iframe src="lenormand.html" id="lenormandFrame"></iframe>
+<!-- DUAL INPUT -->
+<div id="dual-input" class="screen">
+  <h2>⚡ 双系统解读</h2>
+  <p style="color:#8898b0;font-size:13px;line-height:1.6;margin-bottom:12px">
+    同一个问题，塔罗揭示深层原因，雷诺曼预测具体事件。<br>
+    两个系统交叉分析，给你最全面的答案。
+  </p>
+  <input type="text" id="dualQuestion" placeholder="输入你的问题">
+  <div style="display:flex;gap:6px;margin:10px 0">
+    <button onclick="setDualTopic('general',this)" style="flex:1;padding:10px;font-size:14px;border-color:#d4a843;color:#d4a843" class="dt-btn">🔮 综合</button>
+    <button onclick="setDualTopic('love',this)" style="flex:1;padding:10px;font-size:14px" class="dt-btn">💕 感情</button>
+    <button onclick="setDualTopic('work',this)" style="flex:1;padding:10px;font-size:14px" class="dt-btn">💼 事业</button>
+  </div>
+  <button onclick="startDualShuffle()">开始占卜</button>
+  <button class="btn-back" onclick="showScreen('home')">返回</button>
 </div>
-<button class="dual-back" id="dualBack" onclick="closeDual()">✕ 返回首页</button>
+
+<!-- SHUFFLE -->
+<div class="shuffle-overlay" id="shuffleOverlay">
+  <div style="font-size:60px">⚡</div>
+  <div class="shuffle-text">双系统洗牌中...</div>
+</div>
+
+<!-- DUAL READING -->
+<div id="dual-reading" class="screen">
+  <h2>⚡ 双系统解读</h2>
+  <p id="dualQ" style="color:#8898b0;font-size:13px;margin-bottom:14px"></p>
+
+  <!-- Tarot Section -->
+  <div class="dual-section">
+    <h3>🔮 塔罗解读 — 为什么</h3>
+    <p style="font-size:11px;color:#8898b0;margin-bottom:8px">时间之流：过去→现在→未来 | 点击翻牌</p>
+    <div class="dual-cards" id="tarotCards"></div>
+    <div id="tarotResults"></div>
+  </div>
+
+  <!-- Lenormand Section -->
+  <div class="dual-section">
+    <h3>🃏 雷诺曼解读 — 会怎样</h3>
+    <p style="font-size:11px;color:#8898b0;margin-bottom:8px">三牌组合：主题+修饰 | 点击翻牌</p>
+    <div class="dual-cards" id="lenCards"></div>
+    <div id="lenResults"></div>
+  </div>
+
+  <!-- Cross Analysis -->
+  <div id="crossAnalysis"></div>
+
+  <button onclick="showScreen('home')" style="margin-top:12px">返回首页</button>
+  <button class="btn-back" onclick="showScreen('dual-input')">再占一次</button>
+</div>
+
+</div>
 
 <script>
-function openDual() {
-  document.getElementById("homeView").style.display = "none";
-  document.getElementById("dualFrame").classList.add("active");
-  document.getElementById("dualBack").classList.add("active");
+// ============ TAROT MINI DECK (22 Major Arcana for dual mode) ============
+const TAROT = [
+{n:0,name:"愚人",em:"🃏",u:"自由洒脱、天真勇敢",r:"鲁莽冲动、不负责任",ul:"勇敢开启新可能，纯粹心动",rl:"冲动引发矛盾，轻率择偶",uw:"突破舒适区，开放接受新机会",rw:"鲁莽犯错，盲目投入"},
+{n:1,name:"魔术师",em:"🎩",u:"资源整合、创意落地",r:"欺骗隐瞒、能力不足",ul:"用行动经营感情，魅力吸引",rl:"花言巧语不真诚",uw:"整合资源推进项目",rw:"计划不周导致失败"},
+{n:2,name:"女祭司",em:"🌙",u:"直觉敏锐、内在智慧",r:"忽视直觉、过度敏感",ul:"倾听内心，保持神秘感",rl:"猜疑过多产生误会",uw:"深入研究再行动",rw:"信息不足急于决策"},
+{n:3,name:"女皇",em:"👑",u:"丰盛富足、创造力强",r:"过度依赖、创造力受阻",ul:"感情甜蜜滋养，关系稳定成长",rl:"过度付出失去自我",uw:"创意丰富收获成果",rw:"工作缺乏动力"},
+{n:4,name:"皇帝",em:"🏰",u:"权威领导、责任担当",r:"控制欲强、僵化固执",ul:"给予安全感，承担责任",rl:"控制欲过强压制对方",uw:"展现领导力",rw:"独断专行不听建议"},
+{n:5,name:"教皇",em:"⛪",u:"传统智慧、信仰指引",r:"教条束缚、固步自封",ul:"传统稳定的关系",rl:"被传统观念束缚",uw:"遵循规范稳健发展",rw:"不愿遵守规则"},
+{n:6,name:"恋人",em:"💕",u:"爱情选择、心灵连接",r:"价值观冲突、选择困难",ul:"真挚的感情连接",rl:"三观不合矛盾频发",uw:"找到热爱的方向",rw:"合作关系出现分歧"},
+{n:7,name:"战车",em:"🏎️",u:"意志坚定、勇往直前",r:"方向迷失、失去控制",ul:"积极追求所爱",rl:"步调不一致引发冲突",uw:"目标明确全力以赴",rw:"努力方向错误"},
+{n:8,name:"力量",em:"🦁",u:"内在力量、温柔坚韧",r:"自我怀疑、情绪失控",ul:"用温柔化解矛盾",rl:"情绪化处理问题",uw:"以柔克刚处理难题",rw:"遇困难就退缩"},
+{n:9,name:"隐士",em:"🏔️",u:"独处反思、内在探索",r:"自我封闭、逃避社交",ul:"独处后更清楚自己要什么",rl:"过度封闭拒绝沟通",uw:"深入钻研找到方案",rw:"闭门造车脱离实际"},
+{n:10,name:"命运之轮",em:"🎡",u:"命运转折、好运降临",r:"时机未到、运势低迷",ul:"感情迎来转折点",rl:"时机未到需要等待",uw:"事业迎来机遇",rw:"计划受阻需调整"},
+{n:11,name:"正义",em:"⚖️",u:"公平正义、理性判断",r:"不公平待遇、逃避责任",ul:"公平对等的关系",rl:"付出不对等",uw:"凭实力获得认可",rw:"遭遇不公平对待"},
+{n:12,name:"倒吊人",em:"🙃",u:"换角度看、牺牲等待",r:"无意义牺牲、拖延",ul:"放下执念理解对方",rl:"一味付出不被珍惜",uw:"暂停重新审视",rw:"拖延错过时机"},
+{n:13,name:"死神",em:"💀",u:"结束重生、彻底转变",r:"抗拒改变、无法放手",ul:"放下过去拥抱新开始",rl:"无法放下前任",uw:"旧模式淘汰转型升级",rw:"守着没前途的岗位"},
+{n:14,name:"节制",em:"🏺",u:"平衡调和、中庸之道",r:"失去平衡、过度极端",ul:"感情和谐平衡",rl:"感情失衡一方付出过多",uw:"工作生活平衡",rw:"工作节奏失调"},
+{n:15,name:"恶魔",em:"😈",u:"欲望束缚、物质诱惑",r:"挣脱束缚、重获自由",ul:"不健康的依赖",rl:"认清后鼓起勇气断开",uw:"被工作绑架失去自由",rw:"摆脱不良环境"},
+{n:16,name:"塔",em:"🗼",u:"突然崩塌、破旧立新",r:"逃避灾难、延迟崩塌",ul:"真相暴露关系被打破",rl:"粉饰太平拖延面对",uw:"突发变故被迫重新开始",rw:"预感危机不愿面对"},
+{n:17,name:"星星",em:"⭐",u:"希望重燃、灵感涌现",r:"失去希望、脱离现实",ul:"感情充满希望",rl:"对爱情失去信心",uw:"前景光明得到认可",rw:"缺乏方向目标不实际"},
+{n:18,name:"月亮",em:"🌕",u:"潜意识、不安恐惧",r:"走出迷雾、真相浮现",ul:"有不安和猜疑",rl:"误会澄清恢复理性",uw:"信息不明朗谨慎决策",rw:"迷雾散去看清局势"},
+{n:19,name:"太阳",em:"☀️",u:"光明灿烂、成功喜悦",r:"过度乐观、延迟成功",ul:"感情阳光甜蜜",rl:"快乐中有隐忧",uw:"事业成功获得认可",rw:"成功来得比预期慢"},
+{n:20,name:"审判",em:"📯",u:"觉醒重生、反思总结",r:"逃避反省、自我否定",ul:"重新审视做出选择",rl:"不愿面对感情问题",uw:"重大职业转折期",rw:"犹豫不决错过机会"},
+{n:21,name:"世界",em:"🌍",u:"圆满完成、新旅程起点",r:"尚未完成、目标未达",ul:"感情达到圆满状态",rl:"差最后一步有遗憾",uw:"项目圆满收官",rw:"收尾拖延目标未实现"},
+];
+
+// ============ LENORMAND MINI DECK ============
+const LENORMAND = [
+{n:1,name:"骑士",em:"🏇",core:"消息、新发展",love:"感情新消息；新追求者出现",work:"新机遇；新项目启动"},
+{n:2,name:"三叶草",em:"🍀",core:"幸运、小确幸",love:"偶遇的小幸运；轻松约会",work:"意外好机会；小奖金"},
+{n:3,name:"船",em:"🚢",core:"旅行、流动",love:"异地恋；旅行中的浪漫",work:"出差；跨境业务"},
+{n:4,name:"房子",em:"🏠",core:"家、稳定",love:"稳定如家的关系；考虑同居",work:"稳定工作环境"},
+{n:5,name:"树",em:"🌳",core:"健康、成长",love:"缓慢成长的爱情",work:"稳步成长深耕行业"},
+{n:6,name:"云",em:"☁️",core:"困惑、不确定",love:"感情迷茫；看不透对方",work:"局势不明朗"},
+{n:7,name:"蛇",em:"🐍",core:"欺骗、第三者",love:"有第三者或隐瞒",work:"有人暗算；陷阱"},
+{n:8,name:"棺材",em:"⚰️",core:"结束、终止",love:"关系结束；分手",work:"失业；合同终止"},
+{n:9,name:"花束",em:"💐",core:"幸福、礼物",love:"被示爱；惊喜浪漫",work:"获得认可好评"},
+{n:10,name:"镰刀",em:"🔪",core:"危险、切断",love:"突然分手；关系被切断",work:"突然裁员；果断决策"},
+{n:11,name:"鞭子",em:"🏏",core:"争执、激情",love:"吵架；激烈的情感",work:"人际冲突；高压"},
+{n:12,name:"鸟",em:"🐦",core:"对话、焦虑",love:"电话聊天；小焦虑",work:"会议沟通；谈判"},
+{n:13,name:"孩子",em:"👶",core:"新开始、天真",love:"新恋情萌芽",work:"新项目；新人入门"},
+{n:14,name:"狐狸",em:"🦊",core:"狡猾、警惕",love:"被骗感情；需要警惕",work:"职场陷阱；被利用"},
+{n:15,name:"熊",em:"🐻",core:"力量、财务",love:"强烈保护欲；安全感",work:"财务稳定；有靠山"},
+{n:16,name:"星星",em:"⭐",core:"希望、指引",love:"理想伴侣出现",work:"目标清晰前景光明"},
+{n:17,name:"鹳",em:"🦩",core:"改变、进步",love:"关系进入新阶段",work:"升职；换工作"},
+{n:18,name:"狗",em:"🐕",core:"朋友、忠诚",love:"忠诚可靠的伴侣",work:"值得信赖的同事"},
+{n:19,name:"塔",em:"🏛️",core:"权威、孤立",love:"感情冷淡有距离感",work:"大机构；独立工作"},
+{n:20,name:"花园",em:"🌺",core:"社交、人脉",love:"社交场合认识新人",work:"人脉广泛；团队协作"},
+{n:21,name:"山",em:"⛰️",core:"障碍、延迟",love:"感情受阻；冷战僵局",work:"项目受阻；进展缓慢"},
+{n:22,name:"十字路口",em:"🔀",core:"选择、多重",love:"面临感情选择",work:"职业选择；需要决定"},
+{n:23,name:"老鼠",em:"🐭",core:"损耗、压力",love:"感情在消耗；信任流失",work:"资源流失；压力大"},
+{n:24,name:"心",em:"❤️",core:"爱、热情",love:"真爱；热恋；心动",work:"热爱工作；好人缘"},
+{n:25,name:"戒指",em:"💍",core:"承诺、契约",love:"订婚结婚；长期承诺",work:"签合同；达成合作"},
+{n:26,name:"书",em:"📕",core:"秘密、知识",love:"秘密恋情；暗恋",work:"学习进修；调查研究"},
+{n:27,name:"信",em:"✉️",core:"书面消息、文件",love:"情书；消息通知",work:"文件处理；邮件往来"},
+{n:28,name:"男人",em:"👨",core:"男性当事人",love:"男方当事人",work:"男性同事或上司"},
+{n:29,name:"女人",em:"👩",core:"女性当事人",love:"女方当事人",work:"女性同事或上司"},
+{n:30,name:"百合",em:"🌷",core:"和谐、成熟",love:"平静和谐的关系",work:"资深经验；稳定环境"},
+{n:31,name:"太阳",em:"☀️",core:"成功、光明",love:"感情光明美好",work:"事业成功；升职加薪"},
+{n:32,name:"月亮",em:"🌙",core:"名誉、直觉",love:"浪漫神秘的感情",work:"声誉提升；获得赞誉"},
+{n:33,name:"钥匙",em:"🔑",core:"解答、确定",love:"关键转折；命中注定",work:"关键信息；决定性突破"},
+{n:34,name:"鱼",em:"🐟",core:"金钱、丰盛",love:"经济独立的伴侣",work:"收入增加；生意兴隆"},
+{n:35,name:"锚",em:"⚓",core:"稳定、持久",love:"长久稳定的关系",work:"工作稳定；长期合同"},
+{n:36,name:"十字架",em:"✝️",core:"负担、考验",love:"感情的重担和痛苦",work:"工作压力大；艰难挑战"},
+];
+
+// ============ STATE ============
+let dualTopic = "general";
+let tarotDrawn = [];
+let lenDrawn = [];
+let tarotFlipped = 0;
+let lenFlipped = 0;
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0, 0);
 }
-function closeDual() {
-  document.getElementById("homeView").style.display = "block";
-  document.getElementById("dualFrame").classList.remove("active");
-  document.getElementById("dualBack").classList.remove("active");
+
+function setDualTopic(t, el) {
+  dualTopic = t;
+  document.querySelectorAll(".dt-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "#e8cc6e"; });
+  el.style.borderColor = "#d4a843"; el.style.color = "#d4a843";
+}
+
+function startDualShuffle() {
+  document.getElementById("shuffleOverlay").classList.add("active");
+  setTimeout(() => {
+    document.getElementById("shuffleOverlay").classList.remove("active");
+    dualDraw();
+  }, 2000);
+}
+
+function dualDraw() {
+  const q = document.getElementById("dualQuestion").value.trim();
+  document.getElementById("dualQ").textContent = q ? "问题：" + q : "";
+
+  // Draw 3 tarot cards (time flow)
+  const tShuf = [...TAROT].sort(() => Math.random() - 0.5);
+  tarotDrawn = [
+    {card: tShuf[0], pos: "过去", rev: Math.random() < 0.5},
+    {card: tShuf[1], pos: "现在", rev: Math.random() < 0.5},
+    {card: tShuf[2], pos: "未来", rev: Math.random() < 0.5},
+  ];
+
+  // Draw 3 lenormand cards
+  const lShuf = [...LENORMAND].sort(() => Math.random() - 0.5);
+  lenDrawn = [
+    {card: lShuf[0], pos: "主题"},
+    {card: lShuf[1], pos: "修饰·过去"},
+    {card: lShuf[2], pos: "修饰·未来"},
+  ];
+
+  tarotFlipped = 0; lenFlipped = 0;
+  renderDualCards();
+  showScreen("dual-reading");
+}
+
+function renderDualCards() {
+  // Tarot cards
+  const tc = document.getElementById("tarotCards");
+  tc.innerHTML = "";
+  tarotDrawn.forEach((d, i) => {
+    const div = document.createElement("div");
+    div.className = "d-card" + (d.rev ? " reversed" : "");
+    div.innerHTML = `<div class="d-card-inner"><div class="d-card-back"></div><div class="d-card-front"><div style="font-size:8px;color:#8898b0">${d.pos}</div><div class="emoji">${d.card.em}</div><div class="name">${d.card.name}</div><div class="orient">${d.rev?"逆位↓":"正位↑"}</div></div></div>`;
+    div.onclick = () => flipTarot(div, i);
+    tc.appendChild(div);
+  });
+
+  // Lenormand cards
+  const lc = document.getElementById("lenCards");
+  lc.innerHTML = "";
+  lenDrawn.forEach((d, i) => {
+    const div = document.createElement("div");
+    div.className = "d-card";
+    div.innerHTML = `<div class="d-card-inner"><div class="d-card-back"></div><div class="d-card-front"><div style="font-size:8px;color:#8898b0">${d.pos}</div><div class="emoji">${d.card.em}</div><div class="name">${d.card.name}</div><div style="font-size:8px;color:#8898b0">#${d.card.n}</div></div></div>`;
+    div.onclick = () => flipLen(div, i);
+    lc.appendChild(div);
+  });
+
+  document.getElementById("tarotResults").innerHTML = "";
+  document.getElementById("lenResults").innerHTML = "";
+  document.getElementById("crossAnalysis").innerHTML = "";
+}
+
+function getTarotMeaning(card, rev, topic) {
+  if (topic === "love") return rev ? card.rl : card.ul;
+  if (topic === "work") return rev ? card.rw : card.uw;
+  return rev ? card.r : card.u;
+}
+
+function getLenMeaning(card, topic) {
+  if (topic === "love") return card.love;
+  if (topic === "work") return card.work;
+  return card.core;
+}
+
+function flipTarot(el, i) {
+  if (el.classList.contains("flipped")) return;
+  el.classList.add("flipped");
+  tarotFlipped++;
+  const d = tarotDrawn[i];
+  const m = getTarotMeaning(d.card, d.rev, dualTopic);
+  document.getElementById("tarotResults").innerHTML += `
+    <div class="result-item">
+      <div class="pos">[ ${d.pos} ] ${d.card.em} ${d.card.name} ${d.rev?"逆位":"正位"}</div>
+      <div class="detail">${m}</div>
+    </div>`;
+  checkAllFlipped();
+}
+
+function flipLen(el, i) {
+  if (el.classList.contains("flipped")) return;
+  el.classList.add("flipped");
+  lenFlipped++;
+  const d = lenDrawn[i];
+  const m = getLenMeaning(d.card, dualTopic);
+  document.getElementById("lenResults").innerHTML += `
+    <div class="result-item">
+      <div class="pos">[ ${d.pos} ] ${d.card.em} ${d.card.name} #${d.card.n}</div>
+      <div class="detail">${m}</div>
+    </div>`;
+  checkAllFlipped();
+}
+
+function checkAllFlipped() {
+  if (tarotFlipped === 3 && lenFlipped === 3) showCrossAnalysis();
+}
+
+function showCrossAnalysis() {
+  const q = document.getElementById("dualQuestion").value.trim();
+  const t = dualTopic;
+
+  // Tarot summary
+  const tarotStory = tarotDrawn.map(d => {
+    const m = getTarotMeaning(d.card, d.rev, t);
+    return `${d.pos}：${d.card.em}${d.card.name}${d.rev?"(逆)":""} — ${m}`;
+  }).join("；");
+
+  // Lenormand combo
+  const lenCombo = lenDrawn.map(d => d.card.em + d.card.name).join(" + ");
+  const lenStory = lenDrawn.map(d => {
+    const m = getLenMeaning(d.card, t);
+    return `${d.card.em}${d.card.name}：${m}`;
+  }).join("；");
+
+  // Positive/negative analysis
+  const tRev = tarotDrawn.filter(d => d.rev).length;
+  const lenNeg = [6,7,8,10,21,23,36];
+  const lenPos = [2,4,9,16,18,24,25,31,33,35];
+  const lNeg = lenDrawn.filter(d => lenNeg.includes(d.card.n)).length;
+  const lPos = lenDrawn.filter(d => lenPos.includes(d.card.n)).length;
+
+  let tarotTrend = tRev <= 1 ? "偏积极" : "有阻碍需调整";
+  let lenTrend = lPos > lNeg ? "偏积极" : lNeg > lPos ? "有挑战" : "中性平稳";
+
+  let crossResult = "";
+  if (tarotTrend === "偏积极" && lenTrend === "偏积极") {
+    crossResult = "两个系统结果一致偏积极 — 无论从内心动机还是实际发展来看，趋势都是向好的。信息互相确认，可以更有信心。";
+  } else if (tarotTrend !== "偏积极" && lenTrend !== "偏积极") {
+    crossResult = "两个系统都提示存在挑战 — 不仅内心有纠结，实际发展也有阻碍。建议先处理内在问题（塔罗提示），再应对外在局势（雷诺曼提示）。";
+  } else if (tarotTrend === "偏积极") {
+    crossResult = "塔罗偏积极但雷诺曼提示有挑战 — 内心状态是好的，但实际发展可能遇到阻碍。说明方向对了，但需要应对具体的外在困难。";
+  } else {
+    crossResult = "塔罗提示有阻碍但雷诺曼偏积极 — 实际发展在往好的方向走，但内心还有纠结或恐惧。需要先解决内心的障碍，才能更好地抓住机会。";
+  }
+
+  let html = `<div class="cross-box">
+    <h3 style="text-align:center;margin-bottom:14px">🔗 交叉分析</h3>`;
+
+  if (q) html += `<p style="text-align:center;color:#8898b0;font-size:13px;margin-bottom:12px">关于「${q}」</p>`;
+
+  html += `<div style="margin:12px 0">
+    <p style="font-size:13px;margin-bottom:6px"><strong style="color:#d4a843">🔮 塔罗（为什么）：</strong><span style="color:#c0c8d8">${tarotStory}</span></p>
+    <p style="font-size:12px;color:#8898b0;margin-bottom:10px">塔罗趋势：${tarotTrend}</p>
+  </div>
+  <div style="margin:12px 0">
+    <p style="font-size:13px;margin-bottom:6px"><strong style="color:#d4a843">🃏 雷诺曼（会怎样）：</strong><span style="color:#c0c8d8">${lenCombo} — ${lenStory}</span></p>
+    <p style="font-size:12px;color:#8898b0;margin-bottom:10px">雷诺曼趋势：${lenTrend}</p>
+  </div>
+  <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">
+  <p style="font-size:14px;line-height:1.8;color:#e0e0f0">${crossResult}</p>
+  <p style="margin-top:14px;font-style:italic;font-size:12px;color:#8898b0;line-height:1.8">
+    塔罗照见内心，雷诺曼预见事件。<br>选择权始终在你手中。
+  </p></div>`;
+
+  document.getElementById("crossAnalysis").innerHTML = html;
 }
 </script>
 </body>
