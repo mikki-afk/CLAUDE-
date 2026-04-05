@@ -198,7 +198,7 @@ input::placeholder { color:#506080; }
   <p id="dualQ" style="color:#8898b0;font-size:13px;margin-bottom:14px"></p>
 
   <!-- Single Card Verdict -->
-  <div class="dual-section" style="text-align:center">
+  <div class="dual-section" id="verdictSection" style="text-align:center">
     <h3>🎴 单牌定调</h3>
     <p style="font-size:11px;color:#8898b0;margin-bottom:10px">一张牌定方向 | 点击翻牌</p>
     <div class="dual-cards" id="verdictCard"></div>
@@ -415,7 +415,7 @@ function dualDraw() {
   }
 
   // 显示/隐藏定调牌区域
-  document.querySelector("#dual-reading .dual-section:first-child").style.display = useVerdict ? "block" : "none";
+  document.getElementById("verdictSection").style.display = useVerdict ? "block" : "none";
 
   tarotFlipped = 0; lenFlipped = 0;
   renderDualCards();
@@ -426,15 +426,17 @@ function renderDualCards() {
   // Verdict card
   const vc = document.getElementById("verdictCard");
   vc.innerHTML = "";
-  const vd = verdictDrawn;
-  const vDiv = document.createElement("div");
-  vDiv.className = "d-card" + (vd.rev ? " reversed" : "");
-  vDiv.style.width = "100px";
-  vDiv.style.height = "145px";
-  vDiv.innerHTML = `<div class="d-card-inner"><div class="d-card-back"></div><div class="d-card-front"><div style="font-size:8px;color:#8898b0">定调</div><div class="emoji" style="font-size:32px">${vd.card.em}</div><div class="name" style="font-size:11px">${vd.card.name}</div><div class="orient">${vd.rev?"逆位↓":"正位↑"}</div></div></div>`;
-  vDiv.onclick = () => flipVerdict(vDiv);
-  vc.appendChild(vDiv);
   document.getElementById("verdictResult").innerHTML = "";
+  if (verdictDrawn) {
+    const vd = verdictDrawn;
+    const vDiv = document.createElement("div");
+    vDiv.className = "d-card" + (vd.rev ? " reversed" : "");
+    vDiv.style.width = "100px";
+    vDiv.style.height = "145px";
+    vDiv.innerHTML = `<div class="d-card-inner"><div class="d-card-back"></div><div class="d-card-front"><div style="font-size:8px;color:#8898b0">定调</div><div class="emoji" style="font-size:32px">${vd.card.em}</div><div class="name" style="font-size:11px">${vd.card.name}</div><div class="orient">${vd.rev?"逆位↓":"正位↑"}</div></div></div>`;
+    vDiv.onclick = () => flipVerdict(vDiv);
+    vc.appendChild(vDiv);
+  }
 
   // Tarot cards
   const tc = document.getElementById("tarotCards");
