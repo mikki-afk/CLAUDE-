@@ -303,6 +303,15 @@ function setDualTopic(t, el) {
   el.style.borderColor = "#d4a843"; el.style.color = "#d4a843";
 }
 
+function detectDualType(q) {
+  if (!q) return "general";
+  const loveWords = ["喜欢","爱","心动","在一起","复合","分手","暧昧","对象","恋","感情","他","她","前任","脱单","结婚","表白","追","告白","冷战","吵架","出轨","第三者","暗恋","单身","约会","对我"];
+  if (loveWords.some(w => q.includes(w))) return "love";
+  const workWords = ["工作","辞职","跳槽","升职","加薪","面试","offer","创业","项目","老板","同事","事业","转行","裁员","考试","学业","考研","留学","pr","PR"];
+  if (workWords.some(w => q.includes(w))) return "work";
+  return "general";
+}
+
 function startDualShuffle() {
   document.getElementById("shuffleOverlay").classList.add("active");
   setTimeout(() => {
@@ -315,21 +324,47 @@ function dualDraw() {
   const q = document.getElementById("dualQuestion").value.trim();
   document.getElementById("dualQ").textContent = q ? "问题：" + q : "";
 
-  // Draw 3 tarot cards (time flow)
+  const qType = detectDualType(q);
   const tShuf = [...TAROT].sort(() => Math.random() - 0.5);
-  tarotDrawn = [
-    {card: tShuf[0], pos: "过去", rev: Math.random() < 0.5},
-    {card: tShuf[1], pos: "现在", rev: Math.random() < 0.5},
-    {card: tShuf[2], pos: "未来", rev: Math.random() < 0.5},
-  ];
-
-  // Draw 3 lenormand cards
   const lShuf = [...LENORMAND].sort(() => Math.random() - 0.5);
-  lenDrawn = [
-    {card: lShuf[0], pos: "主题"},
-    {card: lShuf[1], pos: "修饰·过去"},
-    {card: lShuf[2], pos: "修饰·未来"},
-  ];
+
+  if (qType === "love") {
+    // 感情：塔罗关系十字5牌 + 雷诺曼5牌
+    tarotDrawn = [
+      {card: tShuf[0], pos: "你的状态", rev: Math.random() < 0.5},
+      {card: tShuf[1], pos: "对方状态", rev: Math.random() < 0.5},
+      {card: tShuf[2], pos: "关系挑战", rev: Math.random() < 0.5},
+      {card: tShuf[3], pos: "建议行动", rev: Math.random() < 0.5},
+      {card: tShuf[4], pos: "未来走向", rev: Math.random() < 0.5},
+    ];
+    lenDrawn = [
+      {card: lShuf[0], pos: "过去"},
+      {card: lShuf[1], pos: "近期"},
+      {card: lShuf[2], pos: "核心"},
+      {card: lShuf[3], pos: "挑战"},
+      {card: lShuf[4], pos: "结果"},
+    ];
+    document.querySelector("#dual-reading .dual-section:first-of-type h3").textContent = "🔮 塔罗解读（为什么）— 关系十字";
+    document.querySelector("#dual-reading .dual-section:first-of-type p").textContent = "关系十字：你→对方→挑战→建议→走向 | 点击翻牌";
+    document.querySelector("#dual-reading .dual-section:last-of-type h3").textContent = "🃏 雷诺曼解读（会怎样）— 五牌";
+    document.querySelector("#dual-reading .dual-section:last-of-type p").textContent = "五牌：过去→近期→核心→挑战→结果 | 点击翻牌";
+  } else {
+    // 事业/选择/一般：塔罗时间之流3牌 + 雷诺曼3牌
+    tarotDrawn = [
+      {card: tShuf[0], pos: "过去", rev: Math.random() < 0.5},
+      {card: tShuf[1], pos: "现在", rev: Math.random() < 0.5},
+      {card: tShuf[2], pos: "未来", rev: Math.random() < 0.5},
+    ];
+    lenDrawn = [
+      {card: lShuf[0], pos: "主题"},
+      {card: lShuf[1], pos: "修饰·过去"},
+      {card: lShuf[2], pos: "修饰·未来"},
+    ];
+    document.querySelector("#dual-reading .dual-section:first-of-type h3").textContent = "🔮 塔罗解读（为什么）— 时间之流";
+    document.querySelector("#dual-reading .dual-section:first-of-type p").textContent = "时间之流：过去→现在→未来 | 点击翻牌";
+    document.querySelector("#dual-reading .dual-section:last-of-type h3").textContent = "🃏 雷诺曼解读（会怎样）— 三牌";
+    document.querySelector("#dual-reading .dual-section:last-of-type p").textContent = "三牌组合：主题+修饰 | 点击翻牌";
+  }
 
   tarotFlipped = 0; lenFlipped = 0;
   renderDualCards();
@@ -405,7 +440,7 @@ function flipLen(el, i) {
 }
 
 function checkAllFlipped() {
-  if (tarotFlipped === 3 && lenFlipped === 3) showCrossAnalysis();
+  if (tarotFlipped === tarotDrawn.length && lenFlipped === lenDrawn.length) showCrossAnalysis();
 }
 
 function showCrossAnalysis() {
