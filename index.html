@@ -747,11 +747,12 @@ function flipCard(el, index) {
   else if (t === "work") detail = rev ? c.rw : c.uw;
   else detail = rev ? c.r : c.u;
 
+  const astroInfo = c.astro ? ` | ${c.astro}` : "";
   const html = `
     <div class="result-card">
       <div class="position-label">[ ${d.position} ]</div>
       <h3>${c.em} ${c.name} ${rev ? "(逆位)" : "(正位)"}</h3>
-      <div style="font-size:12px;color:var(--text2)">元素：${c.el} | 牌组：${c.suit}</div>
+      <div style="font-size:12px;color:var(--text2)">元素：${c.el} | 牌组：${c.suit}${astroInfo}</div>
       <div class="keywords">关键词：${keywords}</div>
       <div class="detail">${detail}</div>
     </div>`;
@@ -851,9 +852,13 @@ function showAdvice() {
   else if (revCount > total/2) energy = "逆位偏多，部分方面需要调整";
   else energy = "正位为主，整体趋势向好";
 
-  // === 3. 元素分析 ===
+  // === 3. 花色+元素深度分析 ===
   const els = {};
-  drawnCards.forEach(d => { els[d.card.el] = (els[d.card.el]||0) + 1; });
+  const suits = {};
+  drawnCards.forEach(d => {
+    els[d.card.el] = (els[d.card.el]||0) + 1;
+    suits[d.card.suit] = (suits[d.card.suit]||0) + 1;
+  });
   const dominant = Object.keys(els).sort((a,b) => els[b]-els[a])[0];
   const elDetail = {
     "火": "行动力和热情是关键——需要大胆去做",
@@ -862,6 +867,26 @@ function showAdvice() {
     "土": "现实条件和稳定性是核心——脚踏实地"
   };
   const elHint = elDetail[dominant] || "涉及重要的人生课题";
+
+  // 花色缺失分析（牌阵参考书方法）
+  let suitAnalysis = "";
+  if (total >= 3) {
+    const allElements = ["火","水","风","土"];
+    const missing = allElements.filter(e => !els[e]);
+    if (missing.length > 0) {
+      const missingMap = {"火":"缺少火元素——行动力和热情不足，可能需要更主动","水":"缺少水元素——情感联结较弱，可能忽视了内心真实感受","风":"缺少风元素——沟通和理性思考不够，可能需要多交流","土":"缺少土元素——现实基础不稳，可能过于理想化忽视实际"};
+      suitAnalysis = missing.map(m => missingMap[m]).join("；");
+    }
+    // 同花色多张牌分析
+    const suitNames = {"权杖":"权杖(行动)","圣杯":"圣杯(情感)","宝剑":"宝剑(思维)","星币":"星币(物质)","大阿卡纳":"大阿卡纳(命运)"};
+    const dominantSuit = Object.keys(suits).sort((a,b) => suits[b]-suits[a])[0];
+    if (suits[dominantSuit] >= 2 && total >= 3) {
+      const suitEmphasis = {"权杖":"多张权杖牌出现，强调行动和热情的能量，事情需要靠主动出击来推进","圣杯":"多张圣杯牌出现，情感是这个问题的核心，需要关注内心感受和关系","宝剑":"多张宝剑牌出现，思维和沟通是关键，可能存在需要理清的矛盾或困惑","星币":"多张星币牌出现，现实条件和物质基础是重点，需要务实面对","大阿卡纳":"多张大阿卡纳出现，这个问题涉及人生重要课题，影响深远"};
+      if (suitEmphasis[dominantSuit]) {
+        suitAnalysis = (suitAnalysis ? suitAnalysis + "。\n" : "") + suitEmphasis[dominantSuit];
+      }
+    }
+  }
 
   // === 4. 根据牌阵+问题讲故事 ===
   let story = "";
@@ -933,9 +958,24 @@ function showAdvice() {
     <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
 
   // 能量和元素
-  html += `<p style="font-size:13px">${energy}。${elHint}。</p>`;
+  html += `<h3 style="color:var(--gold);margin-bottom:8px;font-size:14px">🔮 能量分析</h3>
+    <p style="font-size:13px;margin-bottom:8px">${energy}。${elHint}。</p>`;
 
-  html += `<p style="margin-top:14px;font-style:italic;font-size:12px;color:var(--text2);line-height:1.8">
+  // 花色深度分析
+  if (suitAnalysis) {
+    html += `<p style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:8px">${suitAnalysis}。</p>`;
+  }
+
+  // 占星提示（如果有大阿卡纳牌）
+  const majorCards = drawnCards.filter(d => d.card.astro);
+  if (majorCards.length > 0) {
+    const astroHints = majorCards.map(d => `${d.card.name.split(" ")[0]}对应${d.card.astro}`).join("，");
+    html += `<p style="font-size:12px;color:var(--text2);margin-top:6px">占星对应：${astroHints}</p>`;
+  }
+
+  html += `<hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
+
+  html += `<p style="font-style:italic;font-size:12px;color:var(--text2);line-height:1.8">
       解牌原则：不铁口直断，不替人做决定。<br>
       塔罗仅提供趋势，选择权在你自己。<br>
       即使结果不理想，也会指出改变的方向。
@@ -967,7 +1007,7 @@ function showCardDetail(idx) {
     <div class="emoji">${c.em}</div>
     <h2>${c.name}</h2>
     <div style="text-align:center;color:var(--text2);font-size:13px;margin-bottom:16px">
-      ${c.suit} | ${c.el}元素 | #${c.n}
+      ${c.suit} | ${c.el}元素 | #${c.n}${c.astro ? " | "+c.astro : ""}
     </div>
     <div class="modal-section"><h4>正位关键词</h4><p>${c.u}</p></div>
     <div class="modal-section"><h4>逆位关键词</h4><p>${c.r}</p></div>
