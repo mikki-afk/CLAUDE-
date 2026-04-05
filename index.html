@@ -172,15 +172,36 @@ input::placeholder { color:#506080; }
   </p>
   <input type="text" id="dualQuestion" placeholder="输入你的问题">
 
-  <h3 style="font-size:15px;margin:14px 0 8px">解读方向</h3>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">
-    <button onclick="setDualMode('general',this)" style="flex:1;padding:10px;font-size:13px;border-color:#d4a843;color:#d4a843" class="dm-btn">🔮 综合</button>
-    <button onclick="setDualMode('love',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💕 感情</button>
-    <button onclick="setDualMode('work',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💼 事业</button>
-    <button onclick="setDualMode('choice',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">⚖️ 选择</button>
-    <button onclick="setDualMode('yesno',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">🎴 是否</button>
+  <h3 style="font-size:15px;margin:14px 0 8px">模式</h3>
+  <div style="display:flex;gap:6px;margin:8px 0">
+    <button onclick="setDualInputMode('auto',this)" style="flex:1;padding:10px;font-size:13px;border-color:#d4a843;color:#d4a843" class="dim-btn">🔮 系统推荐</button>
+    <button onclick="setDualInputMode('manual',this)" style="flex:1;padding:10px;font-size:13px" class="dim-btn">📋 自选牌阵</button>
   </div>
-  <p id="modeDesc" style="font-size:12px;color:#506080;margin:6px 0;line-height:1.6">推荐牌阵：三牌时间之流 + 三牌组合</p>
+
+  <!-- 系统推荐模式 -->
+  <div id="dualAutoMode">
+    <h3 style="font-size:14px;margin:12px 0 6px">解读方向</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">
+      <button onclick="setDualMode('general',this)" style="flex:1;padding:10px;font-size:13px;border-color:#d4a843;color:#d4a843" class="dm-btn">🔮 综合</button>
+      <button onclick="setDualMode('love',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💕 感情</button>
+      <button onclick="setDualMode('work',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💼 事业</button>
+      <button onclick="setDualMode('choice',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">⚖️ 选择</button>
+      <button onclick="setDualMode('yesno',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">🎴 是否</button>
+    </div>
+    <p id="modeDesc" style="font-size:12px;color:#506080;margin:6px 0;line-height:1.6">推荐牌阵：三牌时间之流 + 三牌组合</p>
+  </div>
+
+  <!-- 自选牌阵模式 -->
+  <div id="dualManualMode" style="display:none">
+    <h3 style="font-size:14px;margin:12px 0 6px">塔罗牌阵</h3>
+    <select id="tarotSpreadSelect" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(42,64,112,0.6);background:rgba(26,42,72,0.8);color:#e0e8f0;font-size:14px;margin:4px 0"></select>
+    <h3 style="font-size:14px;margin:12px 0 6px">雷诺曼牌阵</h3>
+    <select id="lenSpreadSelect" style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(42,64,112,0.6);background:rgba(26,42,72,0.8);color:#e0e8f0;font-size:14px;margin:4px 0"></select>
+    <div style="display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px;background:rgba(26,42,72,0.5);border-radius:10px">
+      <label style="font-size:13px;color:#8898b0">🎴 定调牌</label>
+      <input type="checkbox" id="manualVerdict" style="width:18px;height:18px">
+    </div>
+  </div>
 
   <button onclick="startDualShuffle()">开始占卜</button>
   <button class="btn-back" onclick="showScreen('home')">返回</button>
@@ -314,6 +335,45 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+let dualInputMode = "auto";
+
+// 塔罗牌阵定义（双系统用）
+const TAROT_SPREADS = {
+  single:{name:"单牌",count:1,positions:["启示"]},
+  three:{name:"时间之流",count:3,positions:["过去","现在","未来"]},
+  relationship:{name:"关系十字",count:5,positions:["你的状态","对方状态","关系挑战","建议行动","未来走向"]},
+  hexagram:{name:"六芒星",count:6,positions:["问题本质","发展趋势","外在影响","当事人态度","行动建议","最终结果"]},
+  horseshoe:{name:"处境马蹄",count:7,positions:["过去","现在","未来","自我","环境","希望或恐惧","最终结果"]},
+  celtic:{name:"凯尔特十字",count:10,positions:["事件中心","十字覆盖","潜意识","过去","可能性","近未来","自我态度","外界影响","希望与恐惧","最终结果"]},
+};
+const LEN_SPREADS = {
+  single:{name:"单牌",count:1,positions:["启示"]},
+  two:{name:"双牌",count:2,positions:["主题","修饰"]},
+  three:{name:"三牌",count:3,positions:["主题","修饰·过去","修饰·未来"]},
+  five:{name:"五牌",count:5,positions:["过去","近期","核心","挑战","结果"]},
+  cross:{name:"十字",count:5,positions:["核心","有利","不利","过去","未来"]},
+  seven:{name:"七牌马蹄",count:7,positions:["过去","现在","未来","自我","环境","建议","结果"]},
+  nine:{name:"九宫格",count:9,positions:["过去远因","过去近因","过去影响","现在外因","核心主题","现在内因","未来趋势","未来发展","最终结果"]},
+};
+
+function setDualInputMode(mode, el) {
+  dualInputMode = mode;
+  document.querySelectorAll(".dim-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "#e8cc6e"; });
+  el.style.borderColor = "#d4a843"; el.style.color = "#d4a843";
+  document.getElementById("dualAutoMode").style.display = mode === "auto" ? "block" : "none";
+  document.getElementById("dualManualMode").style.display = mode === "manual" ? "block" : "none";
+}
+
+// 初始化下拉菜单
+function initDualSelects() {
+  const ts = document.getElementById("tarotSpreadSelect");
+  const ls = document.getElementById("lenSpreadSelect");
+  ts.innerHTML = Object.entries(TAROT_SPREADS).map(([k,v]) => `<option value="${k}">${v.name} (${v.count}张) - ${v.positions.join("·")}</option>`).join("");
+  ls.innerHTML = Object.entries(LEN_SPREADS).map(([k,v]) => `<option value="${k}">${v.name} (${v.count}张) - ${v.positions.join("·")}</option>`).join("");
+  ts.value = "three";
+  ls.value = "three";
+}
+
 function setDualMode(mode, el) {
   document.querySelectorAll(".dm-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "#e8cc6e"; });
   el.style.borderColor = "#d4a843"; el.style.color = "#d4a843";
@@ -359,17 +419,51 @@ function dualDraw() {
   const allTarot = [...TAROT].sort(() => Math.random() - 0.5);
   const lShuf = [...LENORMAND].sort(() => Math.random() - 0.5);
 
+  // 自选模式：从下拉菜单获取牌阵
+  if (dualInputMode === "manual") {
+    const tKey = document.getElementById("tarotSpreadSelect").value;
+    const lKey = document.getElementById("lenSpreadSelect").value;
+    const tSpread = TAROT_SPREADS[tKey];
+    const lSpread = LEN_SPREADS[lKey];
+    useVerdict = document.getElementById("manualVerdict").checked;
+    dualSpread = "custom";
+
+    // 定调牌
+    if (useVerdict) {
+      verdictDrawn = {card: allTarot[0], rev: Math.random() < 0.5};
+      verdictFlipped = false;
+    } else {
+      verdictDrawn = null;
+      verdictFlipped = true;
+    }
+    const tShuf = useVerdict ? allTarot.slice(1) : allTarot;
+
+    tarotDrawn = tSpread.positions.map((pos, i) => ({card: tShuf[i], pos, rev: Math.random() < 0.5}));
+    lenDrawn = lSpread.positions.map((pos, i) => ({card: lShuf[i], pos}));
+
+    document.getElementById("tarotTitle").textContent = `🔮 塔罗（为什么）— ${tSpread.name}`;
+    document.getElementById("tarotDesc").textContent = tSpread.positions.join("→") + " | 点击翻牌";
+    document.getElementById("lenTitle").textContent = `🃏 雷诺曼（会怎样）— ${lSpread.name}`;
+    document.getElementById("lenDesc").textContent = lSpread.positions.join("→") + " | 点击翻牌";
+
+    document.getElementById("verdictSection").style.display = useVerdict ? "block" : "none";
+    tarotFlipped = 0; lenFlipped = 0;
+    renderDualCards();
+    showScreen("dual-reading");
+    return;
+  }
+
+  // 系统推荐模式
   // 定调牌
   if (useVerdict) {
     verdictDrawn = {card: allTarot[0], rev: Math.random() < 0.5};
     verdictFlipped = false;
   } else {
     verdictDrawn = null;
-    verdictFlipped = true; // 不用定调牌则视为已翻
+    verdictFlipped = true;
   }
   const tShuf = useVerdict ? allTarot.slice(1) : allTarot;
 
-  // 根据用户选择的牌阵
   if (dualSpread === "single") {
     tarotDrawn = [{card: tShuf[0], pos: "启示", rev: Math.random() < 0.5}];
     lenDrawn = [{card: lShuf[0], pos: "启示"}];
@@ -607,6 +701,7 @@ function showCrossAnalysis() {
 
   document.getElementById("crossAnalysis").innerHTML = html;
 }
+initDualSelects();
 </script>
 </body>
 </html>
