@@ -168,15 +168,20 @@ input::placeholder { color:#506080; }
 <div id="dual-input" class="screen">
   <h2>⚡ 双系统解读</h2>
   <p style="color:#8898b0;font-size:13px;line-height:1.6;margin-bottom:12px">
-    同一个问题，塔罗揭示深层原因，雷诺曼预测具体事件。<br>
-    两个系统交叉分析，给你最全面的答案。
+    同一个问题，塔罗揭示深层原因，雷诺曼预测具体事件。
   </p>
   <input type="text" id="dualQuestion" placeholder="输入你的问题">
-  <div style="display:flex;gap:6px;margin:10px 0">
-    <button onclick="setDualTopic('general',this)" style="flex:1;padding:10px;font-size:14px;border-color:#d4a843;color:#d4a843" class="dt-btn">🔮 综合</button>
-    <button onclick="setDualTopic('love',this)" style="flex:1;padding:10px;font-size:14px" class="dt-btn">💕 感情</button>
-    <button onclick="setDualTopic('work',this)" style="flex:1;padding:10px;font-size:14px" class="dt-btn">💼 事业</button>
+
+  <h3 style="font-size:15px;margin:14px 0 8px">解读方向</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0">
+    <button onclick="setDualMode('general',this)" style="flex:1;padding:10px;font-size:13px;border-color:#d4a843;color:#d4a843" class="dm-btn">🔮 综合</button>
+    <button onclick="setDualMode('love',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💕 感情</button>
+    <button onclick="setDualMode('work',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">💼 事业</button>
+    <button onclick="setDualMode('choice',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">⚖️ 选择</button>
+    <button onclick="setDualMode('yesno',this)" style="flex:1;padding:10px;font-size:13px" class="dm-btn">🎴 是否</button>
   </div>
+  <p id="modeDesc" style="font-size:12px;color:#506080;margin:6px 0;line-height:1.6">推荐牌阵：三牌时间之流 + 三牌组合</p>
+
   <button onclick="startDualShuffle()">开始占卜</button>
   <button class="btn-back" onclick="showScreen('home')">返回</button>
 </div>
@@ -294,6 +299,8 @@ const LENORMAND = [
 
 // ============ STATE ============
 let dualTopic = "general";
+let dualSpread = "three";
+let useVerdict = false;
 let tarotDrawn = [];
 let lenDrawn = [];
 let verdictDrawn = null;
@@ -307,10 +314,25 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
-function setDualTopic(t, el) {
-  dualTopic = t;
-  document.querySelectorAll(".dt-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "#e8cc6e"; });
+function setDualMode(mode, el) {
+  document.querySelectorAll(".dm-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "#e8cc6e"; });
   el.style.borderColor = "#d4a843"; el.style.color = "#d4a843";
+
+  const descs = {
+    general: "推荐牌阵：三牌时间之流 + 三牌组合",
+    love: "推荐牌阵：定调牌 + 关系十字5牌 + 雷诺曼5牌",
+    work: "推荐牌阵：三牌时间之流 + 三牌组合",
+    choice: "推荐牌阵：定调牌 + 三牌时间之流 + 三牌组合",
+    yesno: "推荐牌阵：定调牌 + 单牌塔罗 + 单牌雷诺曼"
+  };
+  document.getElementById("modeDesc").textContent = descs[mode];
+
+  // 自动设置
+  if (mode === "love") { dualTopic = "love"; dualSpread = "five"; useVerdict = true; }
+  else if (mode === "work") { dualTopic = "work"; dualSpread = "three"; useVerdict = false; }
+  else if (mode === "choice") { dualTopic = "general"; dualSpread = "three"; useVerdict = true; }
+  else if (mode === "yesno") { dualTopic = "general"; dualSpread = "single"; useVerdict = true; }
+  else { dualTopic = "general"; dualSpread = "three"; useVerdict = false; }
 }
 
 function detectDualType(q) {
@@ -334,16 +356,28 @@ function dualDraw() {
   const q = document.getElementById("dualQuestion").value.trim();
   document.getElementById("dualQ").textContent = q ? "问题：" + q : "";
 
-  const qType = detectDualType(q);
   const allTarot = [...TAROT].sort(() => Math.random() - 0.5);
-  // 第一张做定调牌，剩下的做牌阵
-  verdictDrawn = {card: allTarot[0], rev: Math.random() < 0.5};
-  const tShuf = allTarot.slice(1); // 去掉定调牌避免重复
   const lShuf = [...LENORMAND].sort(() => Math.random() - 0.5);
-  verdictFlipped = false;
 
-  if (qType === "love") {
-    // 感情：塔罗关系十字5牌 + 雷诺曼5牌
+  // 定调牌
+  if (useVerdict) {
+    verdictDrawn = {card: allTarot[0], rev: Math.random() < 0.5};
+    verdictFlipped = false;
+  } else {
+    verdictDrawn = null;
+    verdictFlipped = true; // 不用定调牌则视为已翻
+  }
+  const tShuf = useVerdict ? allTarot.slice(1) : allTarot;
+
+  // 根据用户选择的牌阵
+  if (dualSpread === "single") {
+    tarotDrawn = [{card: tShuf[0], pos: "启示", rev: Math.random() < 0.5}];
+    lenDrawn = [{card: lShuf[0], pos: "启示"}];
+    document.getElementById("tarotTitle").textContent = "🔮 塔罗（为什么）— 单牌";
+    document.getElementById("tarotDesc").textContent = "一张牌看核心 | 点击翻牌";
+    document.getElementById("lenTitle").textContent = "🃏 雷诺曼（会怎样）— 单牌";
+    document.getElementById("lenDesc").textContent = "一张牌看方向 | 点击翻牌";
+  } else if (dualSpread === "five") {
     tarotDrawn = [
       {card: tShuf[0], pos: "你的状态", rev: Math.random() < 0.5},
       {card: tShuf[1], pos: "对方状态", rev: Math.random() < 0.5},
@@ -358,12 +392,12 @@ function dualDraw() {
       {card: lShuf[3], pos: "挑战"},
       {card: lShuf[4], pos: "结果"},
     ];
-    document.getElementById("tarotTitle").textContent = "🔮 塔罗解读（为什么）— 关系十字";
-    document.getElementById("tarotDesc").textContent = "关系十字：你→对方→挑战→建议→走向 | 点击翻牌";
-    document.getElementById("lenTitle").textContent = "🃏 雷诺曼解读（会怎样）— 五牌";
-    document.getElementById("lenDesc").textContent = "五牌：过去→近期→核心→挑战→结果 | 点击翻牌";
+    document.getElementById("tarotTitle").textContent = "🔮 塔罗（为什么）— 关系十字";
+    document.getElementById("tarotDesc").textContent = "你→对方→挑战→建议→走向 | 点击翻牌";
+    document.getElementById("lenTitle").textContent = "🃏 雷诺曼（会怎样）— 五牌";
+    document.getElementById("lenDesc").textContent = "过去→近期→核心→挑战→结果 | 点击翻牌";
   } else {
-    // 事业/选择/一般：塔罗时间之流3牌 + 雷诺曼3牌
+    // 默认三牌
     tarotDrawn = [
       {card: tShuf[0], pos: "过去", rev: Math.random() < 0.5},
       {card: tShuf[1], pos: "现在", rev: Math.random() < 0.5},
@@ -374,11 +408,14 @@ function dualDraw() {
       {card: lShuf[1], pos: "修饰·过去"},
       {card: lShuf[2], pos: "修饰·未来"},
     ];
-    document.getElementById("tarotTitle").textContent = "🔮 塔罗解读（为什么）— 时间之流";
-    document.getElementById("tarotDesc").textContent = "时间之流：过去→现在→未来 | 点击翻牌";
-    document.getElementById("lenTitle").textContent = "🃏 雷诺曼解读（会怎样）— 三牌";
-    document.getElementById("lenDesc").textContent = "三牌组合：主题+修饰 | 点击翻牌";
+    document.getElementById("tarotTitle").textContent = "🔮 塔罗（为什么）— 时间之流";
+    document.getElementById("tarotDesc").textContent = "过去→现在→未来 | 点击翻牌";
+    document.getElementById("lenTitle").textContent = "🃏 雷诺曼（会怎样）— 三牌";
+    document.getElementById("lenDesc").textContent = "主题+修饰 | 点击翻牌";
   }
+
+  // 显示/隐藏定调牌区域
+  document.querySelector("#dual-reading .dual-section:first-child").style.display = useVerdict ? "block" : "none";
 
   tarotFlipped = 0; lenFlipped = 0;
   renderDualCards();
