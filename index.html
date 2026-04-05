@@ -805,14 +805,14 @@ function generateVerdict(qType, cards, topic) {
 
   if (qType === "feeling") {
     // 问对方感觉/喜不喜欢
-    if (lc.suit === "圣杯" && !lr) { verdict = `牌面显示对方内心有情感流动，${cardName}正位代表${shortMeaning}`; emoji = "💗"; color = "#e080a0"; }
-    else if (lc.suit === "圣杯" && lr) { verdict = `对方有过情感波动，但${cardName}逆位提示${shortMeaning}——感情受阻或尚未准备好表达`; emoji = "💭"; color = "#a0a0c0"; }
-    else if (lc.suit === "权杖" && !lr) { verdict = `对方有热情和兴趣，${cardName}正位代表${shortMeaning}——行动上是积极的`; emoji = "🔥"; color = "#e0a040"; }
-    else if (lc.suit === "权杖" && lr) { verdict = `对方可能有过心动但热情在消退，${cardName}逆位提示${shortMeaning}`; emoji = "🌙"; color = "#a0a0c0"; }
-    else if (lc.suit === "宝剑" && !lr) { verdict = `对方更多是理性在思考这段关系，${cardName}正位代表${shortMeaning}——头脑清醒但不一定是情感驱动`; emoji = "🧊"; color = "#90a8d0"; }
-    else if (lc.suit === "宝剑" && lr) { verdict = `对方内心有纠结或回避，${cardName}逆位提示${shortMeaning}——可能还没想清楚`; emoji = "🌫️"; color = "#a0a0c0"; }
-    else if (lc.suit === "星币" && !lr) { verdict = `对方更关注现实层面的考量，${cardName}正位代表${shortMeaning}——务实但不代表没有感情`; emoji = "🌿"; color = "#50b080"; }
-    else if (lc.suit === "星币" && lr) { verdict = `对方在现实层面有顾虑，${cardName}逆位提示${shortMeaning}——可能因为外在条件而犹豫`; emoji = "⚠️"; color = "#e0a040"; }
+    if (lc.suit === "圣杯" && !lr) { verdict = `牌面显示对方内心确实有情感，${cardName}正位代表${shortMeaning}——这份感情是真实的`; emoji = "💗"; color = "#e080a0"; }
+    else if (lc.suit === "圣杯" && lr) { verdict = `对方内心有感觉，但情感表达受阻，${cardName}逆位提示${shortMeaning}——不是没有感情，而是还没准备好或者在压抑`; emoji = "💭"; color = "#a0a0c0"; }
+    else if (lc.suit === "权杖" && !lr) { verdict = `对方对你有明确的热情和兴趣，${cardName}正位代表${shortMeaning}——不只是心动，还有行动上的积极`; emoji = "🔥"; color = "#e0a040"; }
+    else if (lc.suit === "权杖" && lr) { verdict = `对方可能有心动，但热情不够强烈或正在消退，${cardName}逆位提示${shortMeaning}——喜欢但缺乏主动追求的行动力`; emoji = "🌙"; color = "#a0a0c0"; }
+    else if (lc.suit === "宝剑" && !lr) { verdict = `对方在理性地思考你们之间的关系，${cardName}正位代表${shortMeaning}——有在认真考虑，但更多是用头脑而不是心在衡量`; emoji = "🧊"; color = "#90a8d0"; }
+    else if (lc.suit === "宝剑" && lr) { verdict = `对方内心有纠结甚至在回避这个问题，${cardName}逆位提示${shortMeaning}——不是不在意，而是还没理清自己的想法`; emoji = "🌫️"; color = "#a0a0c0"; }
+    else if (lc.suit === "星币" && !lr) { verdict = `对方在意你，但更关注现实层面的匹配度，${cardName}正位代表${shortMeaning}——感情有但会先考虑现实条件是否合适`; emoji = "🌿"; color = "#50b080"; }
+    else if (lc.suit === "星币" && lr) { verdict = `对方对你有好感但被现实问题困住了，${cardName}逆位提示${shortMeaning}——不是不喜欢，而是现实顾虑让TA犹豫不前`; emoji = "⚠️"; color = "#e0a040"; }
     else if (!lr) { verdict = `${cardName}正位揭示：${shortMeaning}——这是一个重要的信号，结合你们的实际互动来理解`; emoji = "✨"; color = "#d4a843"; }
     else { verdict = `${cardName}逆位提示：${shortMeaning}——对方的态度可能需要时间或契机才能转变`; emoji = "🌙"; color = "#a0a0c0"; }
   } else if (qType === "choice") {
