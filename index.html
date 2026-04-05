@@ -811,15 +811,15 @@ function showAdvice() {
 
   let verdict, verdictEmoji, verdictColor;
   if (finalScore > 0.5) {
-    verdict = "是 / 积极"; verdictEmoji = "✅"; verdictColor = "#50d080";
+    verdict = "趋势积极，顺势而为"; verdictEmoji = "🌟"; verdictColor = "#50d080";
   } else if (finalScore > 0.1) {
-    verdict = "偏向是，但需注意"; verdictEmoji = "🔅"; verdictColor = "#e0c040";
+    verdict = "趋势偏积极，但需留意细节"; verdictEmoji = "🔅"; verdictColor = "#e0c040";
   } else if (finalScore > -0.1) {
-    verdict = "不确定 / 需要更多时间"; verdictEmoji = "⚖️"; verdictColor = "#a0a0c0";
+    verdict = "趋势不明朗，建议观望等待"; verdictEmoji = "🌙"; verdictColor = "#a0a0c0";
   } else if (finalScore > -0.5) {
-    verdict = "偏向否，有阻碍"; verdictEmoji = "⚠️"; verdictColor = "#e0a040";
+    verdict = "趋势有阻碍，需要调整方式"; verdictEmoji = "⚠️"; verdictColor = "#e0a040";
   } else {
-    verdict = "否 / 需要调整方向"; verdictEmoji = "❌"; verdictColor = "#e06060";
+    verdict = "趋势需反思，换个方向尝试"; verdictEmoji = "🔄"; verdictColor = "#e06060";
   }
 
   // === 2. 能量判断 ===
@@ -900,6 +900,21 @@ function showAdvice() {
     <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
   }
 
+  // 牌阵解读指南
+  let spreadGuide = "";
+  if (total === 1) {
+    spreadGuide = "单牌不是简单的是或否。这张牌揭示的是你当前问题的核心能量与趋势方向——它像一面镜子，照见你内心深处已有的答案。请结合牌义和你的具体处境来理解。";
+  } else if (total === 3) {
+    spreadGuide = "时间之流：三张牌构成一条故事线。过去牌揭示事情的根源和已有的影响；现在牌反映当下的核心状态；未来牌指出按当前趋势可能的走向——未来不是定论，你的行动可以改变它。";
+  } else if (total === 5) {
+    spreadGuide = "关系十字：五张牌从多角度揭示关系全貌。你的状态和对方状态揭示双方的内心；挑战牌指出关系中最需要面对的问题；建议牌给出行动方向；结果牌是按当前趋势的走向，而非不可改变的命运。";
+  } else {
+    spreadGuide = "凯尔特十字：十张牌层层递进，全面解析问题。现状与挑战揭示核心矛盾；潜意识和过去揭示深层原因；可能性和近未来指出短期走向；自我态度和外界影响反映内外因素；希望与恐惧揭示你内心真实的渴望；最终结果是当前趋势的指引，选择权始终在你手中。";
+  }
+  html += `<h3 style="color:var(--gold);margin-bottom:8px;font-size:14px">🧭 牌阵解读原理</h3>
+    <p style="text-align:left;line-height:1.8;font-size:13px;color:var(--text2);margin-bottom:12px">${spreadGuide}</p>
+    <hr style="border:none;border-top:1px solid rgba(212,168,67,0.2);margin:14px 0">`;
+
   // 牌阵故事解读
   html += `<h3 style="color:var(--gold);margin-bottom:10px;font-size:15px">📖 牌面解读</h3>
     <p style="text-align:left;line-height:1.9;font-size:14px;margin-bottom:12px">${story.replace(/\n/g,"<br>")}</p>
@@ -908,8 +923,10 @@ function showAdvice() {
   // 能量和元素
   html += `<p style="font-size:13px">${energy}。${elHint}。</p>`;
 
-  html += `<p style="margin-top:14px;font-style:italic;font-size:12px;color:var(--text2)">
-      塔罗从不给标准答案，而是帮你理清思绪，让你在迷茫中找到属于自己的方向。
+  html += `<p style="margin-top:14px;font-style:italic;font-size:12px;color:var(--text2);line-height:1.8">
+      解牌原则：不铁口直断，不替人做决定。<br>
+      塔罗仅提供趋势，选择权在你自己。<br>
+      即使结果不理想，也会指出改变的方向。
     </p>
   </div>`;
 
