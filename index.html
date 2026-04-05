@@ -348,7 +348,7 @@ function startDualShuffle() {
   document.getElementById("shuffleOverlay").classList.add("active");
   setTimeout(() => {
     document.getElementById("shuffleOverlay").classList.remove("active");
-    try { dualDraw(); } catch(e) { alert("出错了: " + e.message); }
+    try { dualDraw(); } catch(e) { console.error(e); }
   }, 2000);
 }
 
