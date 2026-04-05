@@ -344,10 +344,11 @@ function dualDraw() {
       {card: lShuf[3], pos: "挑战"},
       {card: lShuf[4], pos: "结果"},
     ];
-    document.querySelector("#dual-reading .dual-section:first-of-type h3").textContent = "🔮 塔罗解读（为什么）— 关系十字";
-    document.querySelector("#dual-reading .dual-section:first-of-type p").textContent = "关系十字：你→对方→挑战→建议→走向 | 点击翻牌";
-    document.querySelector("#dual-reading .dual-section:last-of-type h3").textContent = "🃏 雷诺曼解读（会怎样）— 五牌";
-    document.querySelector("#dual-reading .dual-section:last-of-type p").textContent = "五牌：过去→近期→核心→挑战→结果 | 点击翻牌";
+    const sections = document.querySelectorAll("#dual-reading .dual-section");
+    sections[0].querySelector("h3").textContent = "🔮 塔罗解读（为什么）— 关系十字";
+    sections[0].querySelector("p").textContent = "关系十字：你→对方→挑战→建议→走向 | 点击翻牌";
+    sections[1].querySelector("h3").textContent = "🃏 雷诺曼解读（会怎样）— 五牌";
+    sections[1].querySelector("p").textContent = "五牌：过去→近期→核心→挑战→结果 | 点击翻牌";
   } else {
     // 事业/选择/一般：塔罗时间之流3牌 + 雷诺曼3牌
     tarotDrawn = [
@@ -360,10 +361,11 @@ function dualDraw() {
       {card: lShuf[1], pos: "修饰·过去"},
       {card: lShuf[2], pos: "修饰·未来"},
     ];
-    document.querySelector("#dual-reading .dual-section:first-of-type h3").textContent = "🔮 塔罗解读（为什么）— 时间之流";
-    document.querySelector("#dual-reading .dual-section:first-of-type p").textContent = "时间之流：过去→现在→未来 | 点击翻牌";
-    document.querySelector("#dual-reading .dual-section:last-of-type h3").textContent = "🃏 雷诺曼解读（会怎样）— 三牌";
-    document.querySelector("#dual-reading .dual-section:last-of-type p").textContent = "三牌组合：主题+修饰 | 点击翻牌";
+    const sections = document.querySelectorAll("#dual-reading .dual-section");
+    sections[0].querySelector("h3").textContent = "🔮 塔罗解读（为什么）— 时间之流";
+    sections[0].querySelector("p").textContent = "时间之流：过去→现在→未来 | 点击翻牌";
+    sections[1].querySelector("h3").textContent = "🃏 雷诺曼解读（会怎样）— 三牌";
+    sections[1].querySelector("p").textContent = "三牌组合：主题+修饰 | 点击翻牌";
   }
 
   tarotFlipped = 0; lenFlipped = 0;
