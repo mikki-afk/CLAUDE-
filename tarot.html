@@ -434,6 +434,16 @@ input[type="text"]::placeholder { color: #665a80; }
 <!-- Spread Select -->
 <div id="spread-select" class="screen">
   <h2>选择牌阵</h2>
+  <div style="display:flex;gap:6px;margin:12px 0">
+    <button onclick="setSpreadMode('auto',this)" style="flex:1;padding:10px;font-size:14px;border-color:var(--gold);color:var(--gold)" class="sm-btn">🔮 系统推荐</button>
+    <button onclick="setSpreadMode('manual',this)" style="flex:1;padding:10px;font-size:14px" class="sm-btn">📋 自选牌阵</button>
+  </div>
+  <div id="autoSpread" style="margin:12px 0">
+    <p style="color:var(--text2);font-size:13px;line-height:1.6;margin-bottom:10px">根据你的问题自动推荐最合适的牌阵</p>
+    <input type="text" id="autoQuestion" placeholder="先输入问题，系统推荐牌阵">
+    <button onclick="autoSelectSpread()" style="margin-top:8px">推荐牌阵</button>
+    <div id="autoResult"></div>
+  </div>
   <div id="spreadList"></div>
   <br>
   <button class="btn-back" onclick="showScreen('home')">返回</button>
@@ -1055,6 +1065,46 @@ function showTips() {
   ).join("");
 }
 
+// ============ SPREAD MODE ============
+function setSpreadMode(mode, el) {
+  document.querySelectorAll(".sm-btn").forEach(b => { b.style.borderColor = "rgba(212,168,67,0.4)"; b.style.color = "var(--gold2)"; });
+  el.style.borderColor = "var(--gold)"; el.style.color = "var(--gold)";
+  document.getElementById("autoSpread").style.display = mode === "auto" ? "block" : "none";
+  document.getElementById("spreadList").style.display = mode === "manual" ? "block" : "none";
+}
+
+function autoSelectSpread() {
+  const q = document.getElementById("autoQuestion").value.trim();
+  if (!q) { document.getElementById("autoResult").innerHTML = "<p style='color:var(--text2)'>请先输入问题</p>"; return; }
+
+  const loveWords = ["喜欢","爱","心动","在一起","复合","分手","暧昧","对象","恋","感情","他","她","前任","脱单","结婚","表白","追","告白","冷战","吵架","暗恋","约会","对我"];
+  const choiceWords = ["该不该","要不要","选","还是","应不应该","值不值得","A还是B"];
+  const futureWords = ["会不会","能不能","有没有","将来","未来","以后","结果","前途"];
+  const workWords = ["工作","辞职","跳槽","升职","面试","创业","项目","事业","考试","学业"];
+
+  let key, reason;
+  if (loveWords.some(w => q.includes(w))) {
+    key = "relationship"; reason = "感情类问题推荐「关系十字」，5张牌全面分析双方状态";
+  } else if (choiceWords.some(w => q.includes(w))) {
+    key = "choose2"; reason = "选择类问题推荐「二择一牌阵」，5张牌分析两个方向";
+  } else if (futureWords.some(w => q.includes(w))) {
+    key = "horseshoe"; reason = "预测类问题推荐「处境马蹄」，7张牌综合分析";
+  } else if (workWords.some(w => q.includes(w))) {
+    key = "hexagram"; reason = "事业类问题推荐「六芒星牌阵」，6张牌深度解读";
+  } else {
+    key = "three"; reason = "一般问题推荐「时间之流」，3张牌看过去现在未来";
+  }
+
+  const s = SPREADS[key];
+  document.getElementById("autoResult").innerHTML = `
+    <div style="background:var(--card-bg);border:1px solid var(--gold);border-radius:12px;padding:16px;margin:12px 0">
+      <p style="color:var(--gold);font-size:16px;font-weight:bold;margin-bottom:6px">${s.name} (${s.count}张)</p>
+      <p style="color:var(--text2);font-size:12px;margin-bottom:8px">${reason}</p>
+      <p style="color:var(--text2);font-size:11px">${s.positions.join(" · ")}</p>
+      <button onclick="document.getElementById('questionField').value=document.getElementById('autoQuestion').value;selectSpread('${key}')" style="margin-top:10px;font-size:14px">使用此牌阵</button>
+    </div>`;
+}
+
 // ============ INIT ============
 filterCards("全部");
 
@@ -1075,6 +1125,7 @@ filterCards("全部");
     });
   });
   document.getElementById("spreadList").innerHTML = html;
+  document.getElementById("spreadList").style.display = "none";
 })();
 </script>
 </body>
