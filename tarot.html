@@ -434,10 +434,7 @@ input[type="text"]::placeholder { color: #665a80; }
 <!-- Spread Select -->
 <div id="spread-select" class="screen">
   <h2>选择牌阵</h2>
-  <button onclick="selectSpread('single')">🎴 单牌占卜<br><small style="color:var(--text2)">快速洞察，1张牌</small></button>
-  <button onclick="selectSpread('three')">🕐 时间之流<br><small style="color:var(--text2)">过去·现在·未来，3张牌</small></button>
-  <button onclick="selectSpread('relationship')">💕 关系十字<br><small style="color:var(--text2)">自己·对方·挑战·建议·结果，5张牌</small></button>
-  <button onclick="selectSpread('celtic')">🌟 凯尔特十字<br><small style="color:var(--text2)">全面深度解读，10张牌</small></button>
+  <div id="spreadList"></div>
   <br>
   <button class="btn-back" onclick="showScreen('home')">返回</button>
 </div>
@@ -612,10 +609,34 @@ const DECK = [
 
 // ============ SPREADS ============
 const SPREADS = {
-  single: {name:"单牌占卜",count:1,positions:["启示"]},
-  three: {name:"时间之流",count:3,positions:["过去","现在","未来"]},
-  relationship: {name:"关系十字",count:5,positions:["你的状态","对方状态","关系挑战","建议行动","未来走向"]},
-  celtic: {name:"凯尔特十字",count:10,positions:["现状","挑战","潜意识","过去","可能性","近未来","自我态度","外界影响","希望与恐惧","最终结果"]}
+  // 单牌
+  single: {name:"单牌占卜",count:1,cat:"快速",positions:["启示"]},
+  // 时序类
+  three: {name:"时间之流",count:3,cat:"时序",positions:["过去","现在","未来"]},
+  weekly: {name:"每周占卜",count:8,cat:"时序",positions:["周一","周二","周三","周四","周五","周六","周日","整周建议"]},
+  timechange: {name:"时间变化",count:7,cat:"时序",positions:["较远的过去","较近的过去","刚发生的状况","现在的状况","将发生的状况","较近的未来","较远的未来"]},
+  monthly: {name:"月历牌阵",count:12,cat:"时序",positions:["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"]},
+  pyramid: {name:"时间金字塔",count:10,cat:"时序",positions:["远过去","近过去·左","近过去·右","现在·左","现在·中","现在·右","近未来·左","近未来·右","远未来·左","远未来·右"]},
+  // 状况类
+  bodymind: {name:"身心灵牌阵",count:4,cat:"状况",positions:["身","心","灵","建议"]},
+  problem: {name:"难题牌阵",count:4,cat:"状况",positions:["现况","困难","解答","建议"]},
+  solution: {name:"问题解决",count:4,cat:"状况",positions:["原因","状况","解决方案","建议"]},
+  elements: {name:"四要素牌阵",count:4,cat:"状况",positions:["火(行动)","土(物质)","风(思维)","水(情感)"]},
+  planets: {name:"七行星牌阵",count:7,cat:"状况",positions:["月亮(情绪)","水星(沟通)","金星(爱)","太阳(自我)","火星(行动)","木星(扩展)","土星(限制)"]},
+  chakra: {name:"脉轮牌阵",count:7,cat:"状况",positions:["海底轮(安全)","脐轮(情感)","太阳轮(力量)","心轮(爱)","喉轮(表达)","眉心轮(直觉)","顶轮(灵性)"]},
+  lifetree: {name:"生命之树",count:10,cat:"状况",positions:["王冠(源头)","智慧(扩展)","理解(收缩)","慈悲(给予)","严厉(限制)","美(平衡)","胜利(欲望)","荣耀(逻辑)","基础(潜意识)","王国(现实)"]},
+  zodiac: {name:"黄道十二宫",count:12,cat:"状况",positions:["自我","财务","沟通","家庭","恋爱","健康","伴侣","转变","远行","事业","社交","灵性"]},
+  // 选择类
+  relationship: {name:"关系十字",count:5,cat:"选择",positions:["你的状态","对方状态","关系挑战","建议行动","未来走向"]},
+  choose2s: {name:"简易二择一",count:4,cat:"选择",positions:["选择A","选择B","其他选择","建议"]},
+  choose2: {name:"二择一牌阵",count:5,cat:"选择",positions:["选择A","选择B","其他选择","建议","结果"]},
+  choose3: {name:"三择一牌阵",count:6,cat:"选择",positions:["选择A","选择B","选择C","其他选择","建议","结果"]},
+  // 综合类
+  horseshoe: {name:"处境马蹄",count:7,cat:"综合",positions:["过去","现在","未来","自我","环境","希望或恐惧","最终结果"]},
+  hexagram: {name:"六芒星牌阵",count:6,cat:"综合",positions:["问题本质","发展趋势","外在影响","当事人态度","行动建议","最终结果"]},
+  glasses: {name:"眼镜牌阵",count:11,cat:"综合",positions:["现况","习惯","表达","喜好","个性","冲突","机会","智慧","创造力","最高理念","知识"]},
+  luckyhorse: {name:"幸运马蹄",count:7,cat:"综合",positions:["过去影响","现在状态","未来可能","建议","环境因素","隐藏信息","最终结果"]},
+  celtic: {name:"凯尔特十字",count:10,cat:"综合",positions:["事件中心","十字覆盖","潜意识","过去","可能性","近未来","自我态度","外界影响","希望与恐惧","最终结果"]}
 };
 
 const TIPS = [
@@ -1036,6 +1057,25 @@ function showTips() {
 
 // ============ INIT ============
 filterCards("全部");
+
+// Generate spread list
+(function(){
+  const cats = {快速:"🎴",时序:"🕐",状况:"🔍",选择:"⚖️",综合:"🌟"};
+  const catOrder = ["快速","时序","状况","选择","综合"];
+  let html = "";
+  catOrder.forEach(cat => {
+    html += `<div style="margin:12px 0 6px;color:var(--gold);font-size:14px;letter-spacing:2px">${cats[cat]} ${cat}类</div>`;
+    Object.entries(SPREADS).forEach(([key, s]) => {
+      if (s.cat === cat) {
+        html += `<button onclick="selectSpread('${key}')" style="text-align:left;padding:12px 16px;font-size:15px;margin:4px 0">
+          ${s.name} <small style="color:var(--text2);font-size:12px">${s.count}张牌</small><br>
+          <small style="color:var(--text2);font-size:11px">${s.positions.join(" · ")}</small>
+        </button>`;
+      }
+    });
+  });
+  document.getElementById("spreadList").innerHTML = html;
+})();
 </script>
 </body>
 </html>
